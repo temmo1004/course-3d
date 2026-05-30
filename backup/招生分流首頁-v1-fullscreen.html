@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>塗鴉變 3D 模型  — 招生分流首頁</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { width:100%; height:100%; overflow:hidden; background:#cfc9be; }
+  body { font-family:"Noto Sans TC", sans-serif; -webkit-tap-highlight-color:transparent; }
+  #root { width:100%; height:100%; }
+
+  .stage { position:fixed; inset:0; overflow:hidden; cursor:default; }
+
+  /* 16:9 artboard scaled to COVER the viewport, centred */
+  .artboard {
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    width:max(100vw, calc(100vh * 16 / 9));
+    height:max(100vh, calc(100vw * 9 / 16));
+    --split:50%;
+  }
+  /* narrow / portrait screens: enlarge the composite (crops only the empty
+     paper margins, never the characters) so figures read bigger on phones */
+  @media (max-aspect-ratio: 13/10) {
+    html, body { background:#ded7ca; }
+    .artboard {
+      --mob:1.12;
+      width:115vw;
+      height:calc(115vw * 9 / 16);
+    }
+  }
+
+  /* full-bleed layers */
+  .layerbox { position:absolute; inset:0; }
+  .cover-layer { z-index:0; opacity:0; transition:opacity .45s ease; background-size:cover; background-position:center; }
+
+  .scene { position:absolute; inset:0; z-index:2; will-change:clip-path; }
+  .scene.left  { clip-path: inset(0 calc(100% - var(--split)) 0 0); transition:clip-path .55s cubic-bezier(.45,.05,.25,1); }
+  .scene.right { clip-path: inset(0 0 0 var(--split));            transition:clip-path .55s cubic-bezier(.45,.05,.25,1); }
+
+  /* paper sheets — the whole kraft sheet slides as one piece; its own torn
+     edge IS the seam (matches the source PNG exactly, no extra strip) */
+  /* ===== layers ===== */
+  /* white paper: static full-bleed base, ALWAYS under the kraft sheet */
+  .white-paper { position:absolute; inset:0; width:100%; height:100%;
+    object-fit:cover; object-position:center; z-index:1;
+    transition:transform .62s cubic-bezier(.5,.02,.2,1), filter .5s ease;
+    will-change:transform; }
+  .stage.dim.active-right .white-paper { filter:brightness(.9); }
+
+  /* 親子班 doodles: pop forward / recede & slide away, glued to the paper */
+  .family-content {
+    position:absolute; inset:0; z-index:2; --spr-scale:var(--fam-scale,1);
+    transform:translateX(var(--fam-tx,0));
+    filter:brightness(var(--fam-bright,1));
+    transition:transform .55s cubic-bezier(.34,1.2,.4,1), filter .45s ease;
+    will-change:transform; pointer-events:none;
+  }
+  /* the kraft unit (paper + 成人班 doodles) slides & dims together as one piece */
+  .kraft-layer { position:absolute; inset:0; z-index:3;
+    transition:transform .62s cubic-bezier(.5,.02,.2,1);
+    will-change:transform; }
+  .kraft-slide {
+    position:absolute; inset:0; --spr-scale:var(--adu-scale,1);
+    transform:translateX(var(--kraft-dx,0));
+    filter:brightness(var(--adu-bright,1));
+    transition:transform .55s cubic-bezier(.34,1.2,.4,1), filter .45s ease;
+    will-change:transform;
+  }
+  /* selected side pops to the FRONT */
+  .stage.active-left  .family-content { z-index:6; }
+  .stage.active-right .kraft-layer    { z-index:6; }
+
+  .kraft-paper {
+    position:absolute; left:0; top:0; width:141%; height:100%;
+    filter:drop-shadow(-6px 2px 7px rgba(70,52,24,.2));
+  }
+  .stage.shadow-none .kraft-paper { filter:none; }
+  .stage.shadow-deep .kraft-paper { filter:drop-shadow(-13px 4px 13px rgba(70,52,24,.34)); }
+
+  .sprite { position:absolute;
+            transform:translate(-50%,-50%) scale(calc(var(--spr-scale,1) * var(--mob,1)));
+            transition:transform .5s cubic-bezier(.34,1.25,.45,1), filter .45s ease;
+            user-select:none; -webkit-user-drag:none; pointer-events:none; }
+
+  /* tape layer — sits above both sheets so 親子 tape is never covered.
+     each tape rides with its side's motion (slide + pop/recede). */
+  .tape-layer { position:absolute; inset:0; z-index:7; pointer-events:none;
+                transition:opacity .45s ease, transform .55s cubic-bezier(.5,.02,.2,1); }
+  .tape { position:absolute; display:block; transform-origin:center center;
+          transition:transform .55s cubic-bezier(.34,1.2,.4,1), filter .45s ease;
+          will-change:transform; user-select:none; -webkit-user-drag:none; }
+  .tape-adult  { transform:translateX(var(--kraft-dx,0)) scale(var(--adu-scale,1));
+                 filter:brightness(var(--adu-bright,1)); }
+  .tape-family { transform:translateX(var(--fam-tx,0))   scale(var(--fam-scale,1));
+                 filter:brightness(var(--fam-bright,1)); }
+  .stage.tearing .tape-layer, .stage.revealed .tape-layer { opacity:0; transform:translateY(-22%) rotate(-1.5deg); }
+
+  /* title + subtitle — cropped straight from the 首頁 PNG (exact match) */
+  .title-layer { z-index:8; pointer-events:none; transition:opacity .4s ease, transform .5s ease; }
+  .title-img { position:absolute; left:41.4%; top:77%; transform:translate(-50%,-50%); width:68.3%; }
+  .subtitle-img { position:absolute; left:0; bottom:0; width:100%; display:block; }
+
+  /* hit zones */
+  .hit { position:absolute; top:0; bottom:13.9%; z-index:9; cursor:pointer; }
+  .hit.left  { left:0; width:var(--split); }
+  .hit.right { left:var(--split); right:0; }
+
+  /* ===== tear: the two sides part from the centre, revealing the cover.
+     these class rules override the squeeze transform vars cleanly. ===== */
+  .stage.tearing .white-paper,    .stage.revealed .white-paper,
+  .stage.tearing .family-content, .stage.revealed .family-content {
+    transform:translateX(-105%) rotate(-2deg); }
+  .stage.tearing .kraft-layer,    .stage.revealed .kraft-layer {
+    transform:translateX(105%) rotate(2deg); }
+  .stage.tearing .title-layer, .stage.revealed .title-layer { opacity:0; transform:scale(.97); }
+  .stage.tearing .cover-layer, .stage.revealed .cover-layer { opacity:1; }
+  .stage.tearing .hit { pointer-events:none; }
+
+  /* ===== cursor tooltip ===== */
+  .tooltip {
+    position:fixed; z-index:20; pointer-events:none; left:0; top:0;
+    transform:translate(-50%, calc(-100% - 18px));
+    background:#1c1c1c; color:#fff; padding:9px 15px; border-radius:999px;
+    font-size:14px; font-weight:700; white-space:nowrap;
+    opacity:0; transition:opacity .18s ease;
+    box-shadow:0 6px 18px rgba(0,0,0,.28);
+  }
+  .tooltip.show { opacity:1; }
+  .tooltip::after {
+    content:""; position:absolute; left:50%; bottom:-6px; transform:translateX(-50%);
+    border:7px solid transparent; border-top-color:#1c1c1c; border-bottom:0;
+  }
+  .tooltip .arrow { color:#F3DC3E; margin-left:6px; }
+
+  /* ===== back button ===== */
+  .backbtn {
+    position:fixed; z-index:21; left:22px; top:22px;
+    display:flex; align-items:center; gap:8px;
+    background:rgba(28,28,28,.9); color:#fff; border:0; cursor:pointer;
+    padding:11px 18px 11px 14px; border-radius:999px; font-family:inherit;
+    font-weight:700; font-size:15px; backdrop-filter:blur(4px);
+    opacity:0; transform:translateY(-8px); pointer-events:none;
+    transition:opacity .4s ease .25s, transform .4s ease .25s;
+    box-shadow:0 6px 18px rgba(0,0,0,.25);
+  }
+  .stage.revealed .backbtn { opacity:1; transform:translateY(0); pointer-events:auto; }
+  .backbtn:hover { background:#000; }
+
+  /* ===== mobile hint animations ===== */
+  @keyframes wob   { 0%,55%,100%{ transform:translate(-50%,-50%) rotate(0) scale(var(--mob,1)) } 12%{ transform:translate(-50%,-50%) rotate(-2.4deg) scale(calc(var(--mob,1) * 1.03)) } 32%{ transform:translate(-50%,-50%) rotate(2.4deg) scale(calc(var(--mob,1) * 1.02)) } }
+  @keyframes brea  { 0%,55%,100%{ transform:translate(-50%,-50%) scale(var(--mob,1)) } 25%{ transform:translate(-50%,-50%) scale(calc(var(--mob,1) * 1.07)) } }
+  @keyframes glo   { 0%,55%,100%{ filter:drop-shadow(0 0 0 rgba(0,0,0,0)) } 25%{ filter:drop-shadow(0 6px 12px rgba(0,0,0,.3)) } }
+
+  .stage.touch.hint-wobble .family-content .sprite.hero { animation:wob var(--hint-dur) ease-in-out infinite; }
+  .stage.touch.hint-wobble .kraft-layer .sprite.hero { animation:wob var(--hint-dur) ease-in-out infinite; animation-delay:calc(var(--hint-dur) / 2); }
+  .stage.touch.hint-breathe .family-content .sprite.hero { animation:brea var(--hint-dur) ease-in-out infinite; }
+  .stage.touch.hint-breathe .kraft-layer .sprite.hero { animation:brea var(--hint-dur) ease-in-out infinite; animation-delay:calc(var(--hint-dur) / 2); }
+  .stage.touch.hint-glow .family-content .sprite.hero { animation:glo var(--hint-dur) ease-in-out infinite; }
+  .stage.touch.hint-glow .kraft-layer .sprite.hero { animation:glo var(--hint-dur) ease-in-out infinite; animation-delay:calc(var(--hint-dur) / 2); }
+  .stage.tearing .sprite.hero, .stage.revealed .sprite.hero { animation:none !important; }
+
+  /* mobile tap pill */
+  .tap-pill {
+    position:absolute; top:27%; z-index:7;
+    transform:translate(-50%,-50%);
+    background:rgba(28,28,28,.4); color:#fff; padding:4px 10px; border-radius:999px;
+    font-size:11px; font-weight:600; letter-spacing:.02em; white-space:nowrap; pointer-events:none;
+    backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px);
+    box-shadow:0 2px 6px rgba(0,0,0,.14);
+  }
+  .tap-pill .arrow { color:#F3DC3E; margin-left:3px; }
+  .stage.tearing .tap-pill, .stage.revealed .tap-pill { opacity:0; }
+
+  .loading { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:#e9e4da; z-index:50; color:#9a9183; font-weight:700; transition:opacity .4s ease; }
+  .loading.hide { opacity:0; pointer-events:none; }
+</style>
+</head>
+<body>
+  <div id="root"></div>
+  <div class="loading" id="loading">載入素材中…</div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+  <script type="text/babel" src="app.jsx?v=5"></script>
+</body>
+</html>

@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>報名結帳 — 塗鴉變 3D 模型</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  :root {
+    --paper:#ece5d8;
+    --ink:#1f1d18;
+    --yellow:#F3D11E;
+    --muted:#8a7f6a;
+    --line:rgba(120,105,75,.28);
+    --card:#f4efe4;
+  }
+  html { scroll-behavior:smooth; }
+  body {
+    font-family:"Noto Sans TC", sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    -webkit-tap-highlight-color:transparent;
+    min-height:100vh;
+  }
+  a { color:inherit; }
+
+  .topbar {
+    position:sticky; top:0; z-index:5;
+    display:flex; align-items:center; gap:14px;
+    padding:16px clamp(18px,4vw,48px);
+    background:rgba(236,229,216,.92);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+  }
+  .back {
+    display:inline-flex; align-items:center; gap:7px;
+    text-decoration:none; font-weight:800; font-size:15px;
+    background:#1c1c1c; color:#fff; padding:9px 16px 9px 12px; border-radius:999px;
+  }
+  .back:hover { background:#000; }
+  .topbar h1 { font-size:clamp(17px,2vw,21px); font-weight:900; letter-spacing:.01em; }
+
+  .wrap {
+    width:min(92vw, 1040px); margin:0 auto;
+    padding:clamp(28px,5vw,56px) 0 90px;
+    display:grid; grid-template-columns:1.25fr .9fr; gap:clamp(24px,3.5vw,44px);
+    align-items:start;
+  }
+
+  .eyebrow {
+    display:inline-block; font-size:13px; font-weight:900; letter-spacing:.12em;
+    color:var(--ink); background:var(--yellow); padding:6px 13px; border-radius:3px;
+  }
+  .field { margin-top:24px; }
+  .field > label {
+    display:block; font-weight:900; font-size:15px; margin-bottom:9px; letter-spacing:.02em;
+  }
+  .note {
+    margin-top:9px; font-size:13px; font-weight:700; color:var(--muted); line-height:1.6;
+  }
+  .note.applied { color:#1f6b3a; }
+
+  select, input, textarea {
+    width:100%; font-family:inherit; font-size:16px; color:var(--ink);
+    background:#fbf8f0; border:1.5px solid var(--line); border-radius:10px;
+    padding:13px 15px; font-weight:700;
+  }
+  select:focus, input:focus, textarea:focus { outline:none; border-color:var(--ink); }
+  textarea { resize:vertical; min-height:84px; font-weight:500; }
+  .row2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  /* —— 上課時段選擇 —— */
+  .seg { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .seg button {
+    width:100%; font-family:inherit; font-size:15px; font-weight:800; color:var(--ink);
+    background:#fbf8f0; border:1.5px solid var(--line); border-radius:10px;
+    padding:13px 8px; cursor:pointer; transition:border-color .15s, background .15s, transform .1s;
+  }
+  .seg button .sub { display:block; font-size:12px; font-weight:700; color:var(--muted); margin-top:3px; }
+  .seg button:hover { border-color:var(--ink); }
+  .seg button.on { background:var(--yellow); border-color:var(--ink); }
+  .seg button.on .sub { color:#6a5a1a; }
+  .seg button.full { cursor:not-allowed; opacity:.55; background:#efe9dc; }
+  .seg button.full:hover { border-color:var(--line); }
+  .seg button .full-tag { display:none; }
+  .seg button.full .full-tag {
+    display:inline-block; margin-top:4px; font-size:11px; font-weight:900;
+    color:#fff; background:#b23b3b; padding:1px 7px; border-radius:999px; letter-spacing:.04em;
+  }
+  /* 被其他班「先達開班人數」鎖定的時段：用中性灰，與「額滿」區別 */
+  .seg button.locked .full-tag { background:#8a8275; }
+  .seg button.full .sub { display:none; }
+  .seg button .seat { display:none; margin-top:4px; font-size:11px; font-weight:800; color:#6a5f49; }
+  .seg button .seat.show { display:block; }
+  .seg button .seat.few { color:#b23b3b; }
+  .seg button.full .seat { display:none; }
+
+  /* ===== order summary ===== */
+  .summary {
+    position:sticky; top:84px;
+    background:var(--card); border:1px solid var(--line); border-radius:16px;
+    padding:26px 24px;
+    box-shadow:0 18px 40px -26px rgba(70,52,24,.5);
+  }
+  .summary h2 { font-size:18px; font-weight:900; margin-bottom:6px; }
+  .sum-course {
+    margin-top:16px; padding:16px; border-radius:12px;
+    background:#fbf8f0; border:1px solid var(--line);
+  }
+  .sum-course .series { font-size:12px; font-weight:800; color:var(--muted); letter-spacing:.04em; }
+  .sum-course .klass  { margin-top:5px; font-size:19px; font-weight:900; }
+  .sum-course .klass.empty { color:#b3a888; }
+  .qty { display:flex; align-items:center; justify-content:space-between; margin-top:18px; }
+  .qty span { font-weight:800; }
+  .stepper { display:flex; align-items:center; gap:0; border:1.5px solid var(--line); border-radius:999px; overflow:hidden; }
+  .stepper button {
+    width:38px; height:38px; border:0; background:#fbf8f0; cursor:pointer;
+    font-size:20px; font-weight:900; color:var(--ink); line-height:1;
+  }
+  .stepper button:hover { background:var(--yellow); }
+  .stepper b { min-width:40px; text-align:center; font-weight:900; font-size:17px; }
+
+  .sum-lines { margin-top:20px; border-top:1px solid var(--line); padding-top:16px; }
+  .sum-lines .ln { display:flex; justify-content:space-between; font-weight:700; color:#4a4438; margin-top:9px; font-size:15px; }
+  .sum-lines .total { margin-top:15px; padding-top:14px; border-top:1px solid var(--line); font-size:20px; font-weight:900; color:var(--ink); }
+  .hint-price { font-size:12px; color:var(--muted); font-weight:700; margin-top:4px; }
+  #unit del { color:var(--muted); font-weight:700; margin-right:6px; font-size:13px; }
+
+  .btn-pay {
+    margin-top:22px; width:100%; border:0; cursor:pointer;
+    background:var(--ink); color:#fff; font-family:inherit; font-weight:900;
+    font-size:18px; padding:16px; border-radius:999px;
+    box-shadow:0 10px 24px rgba(0,0,0,.24);
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .btn-pay:hover { transform:translateY(-2px); box-shadow:0 14px 30px rgba(0,0,0,.28); }
+  .btn-pay:disabled { opacity:.45; cursor:not-allowed; transform:none; box-shadow:none; }
+  .safe-note { margin-top:14px; font-size:12px; color:var(--muted); text-align:center; line-height:1.6; }
+
+  /* success */
+  .done {
+    display:none; text-align:center; padding:18px 4px 4px;
+  }
+  .done.show { display:block; }
+  .done .check {
+    width:54px; height:54px; margin:0 auto 14px; border-radius:50%;
+    background:var(--yellow); display:flex; align-items:center; justify-content:center;
+    font-size:28px; font-weight:900;
+  }
+  .done h3 { font-size:20px; font-weight:900; }
+  .done p { margin-top:8px; color:#4a4438; font-weight:700; font-size:14px; line-height:1.7; }
+
+  @media (max-width:760px) {
+    .wrap { grid-template-columns:1fr; }
+    .summary { position:static; }
+    .row2 { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="back" href="招生分流首頁.html">‹ 返回</a>
+    <h1>報名結帳</h1>
+  </header>
+
+  <main class="wrap">
+    <!-- ===== left: form ===== -->
+    <section>
+      <span class="eyebrow">選擇課程</span>
+
+      <div class="field">
+        <label for="course">課程班別</label>
+        <select id="course">
+          <optgroup label="塗鴉變 3D 模型？！">
+            <option value="family">親子班</option>
+            <option value="adult">成人班</option>
+          </optgroup>
+          <optgroup label="迷因變成 3D 模型？！">
+            <option value="good">健康乖寶寶班</option>
+            <option value="drunk">酒鬼班</option>
+          </optgroup>
+        </select>
+        <p class="note" id="course-note">請選擇您要報名的課程班別。</p>
+      </div>
+
+      <div style="margin-top:40px"><span class="eyebrow">上課時間</span></div>
+      <div class="field">
+        <label for="date">上課日期</label>
+        <input id="date" type="date">
+        <p class="note">選一個您方便的日期，實際開課以達標並另行 email 確認為準。</p>
+      </div>
+      <div class="field">
+        <label>時段</label>
+        <div class="seg" id="slot">
+          <button type="button" data-slot="早上">早上<span class="sub">09:00–12:00</span><span class="seat"></span><span class="full-tag">已額滿</span></button>
+          <button type="button" data-slot="下午">下午<span class="sub">13:30–16:30</span><span class="seat"></span><span class="full-tag">已額滿</span></button>
+          <button type="button" data-slot="晚上">晚上<span class="sub">18:30–21:30</span><span class="seat"></span><span class="full-tag">已額滿</span></button>
+        </div>
+
+      <div style="margin-top:40px"><span class="eyebrow">報名資料</span></div>
+      <div class="field row2">
+        <div>
+          <label for="name">姓名</label>
+          <input id="name" type="text" placeholder="王小明" autocomplete="name">
+        </div>
+        <div>
+          <label for="phone">手機</label>
+          <input id="phone" type="tel" placeholder="0912-345-678" autocomplete="tel">
+        </div>
+      </div>
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" type="email" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div class="field">
+        <label for="memo">備註（選填）</label>
+        <textarea id="memo" placeholder="想先告訴我們的事，例如同行人數、特殊需求…"></textarea>
+      </div>
+    </section>
+
+    <!-- ===== right: order summary ===== -->
+    <aside class="summary">
+      <div id="form-side">
+        <h2>訂單摘要</h2>
+        <div class="sum-course">
+          <div class="series" id="sum-series">塗鴉變 3D 模型？！</div>
+          <div class="klass" id="sum-klass">親子班</div>
+          <div class="klass" id="sum-when" style="font-size:14px;color:var(--muted);margin-top:6px;">未選擇上課時間</div>
+        </div>
+
+        <div class="qty">
+          <span>報名人數</span>
+          <div class="stepper">
+            <button type="button" id="minus" aria-label="減少">−</button>
+            <b id="qty">1</b>
+            <button type="button" id="plus" aria-label="增加">+</button>
+          </div>
+        </div>
+
+        <div class="sum-lines">
+          <div class="ln"><span>單價</span><span id="unit"><del>NT$ 3,000</del> NT$ 1,500</span></div>
+          <div class="ln"><span>數量</span><span id="qtyline">× 1</span></div>
+          <div class="ln total"><span>總計</span><span id="total">NT$ 1,500</span></div>
+          <p class="hint-price">※ 金額為示意，實際費用以正式課程資訊為準。</p>
+        </div>
+
+        <button class="btn-pay" id="pay">確認報名 →</button>
+        <p class="safe-note">送出後將為您保留名額，並以 Email 寄送繳費與上課資訊。</p>
+      </div>
+
+      <div class="done" id="done">
+        <div class="check">✓</div>
+        <h3>報名已送出！</h3>
+        <p id="done-msg">我們已收到您的報名，將盡快以 Email 與您聯繫後續繳費與上課細節。</p>
+        <button class="btn-pay" style="margin-top:18px" onclick="location.href='招生分流首頁.html'">回到首頁</button>
+      </div>
+    </aside>
+  </main>
+
+  <script>
+    var PRICE = { family: 1500, adult: 1600, good: 1500, drunk: 2100 };
+    var ORIG  = { family: 3000, adult: 3500, good: 3000, drunk: 3500 };
+    var LABEL = { family: "親子班", adult: "成人班", good: "健康乖寶寶班", drunk: "酒鬼班" };
+    var SERIES = { family: "塗鴉變 3D 模型？！", adult: "塗鴉變 3D 模型？！", good: "迷因變成 3D 模型？！", drunk: "迷因變成 3D 模型？！" };
+
+    // ── 報名串接 Google 試算表（Apps Script）──────────────────────────
+    // 用同一個 Google 帳戶（infinit121717@gmail.com）即可。一支腳本同時：
+    //   ① 把每筆報名寫進試算表（可統計「每個時段報了幾人」）
+    //   ② 計算名額 → 額滿的時段自動鎖住（真實滿班，非模擬）
+    //   ③ 寄一封一模一樣的報名明細給你（收件人）與報名者（密件副本）
+    //
+    // 設定步驟：
+    //   1. 用該帳戶新建一張 Google 試算表
+    //   2. 上方選單 擴充功能 → Apps Script，把我另外給你的腳本整段貼上、存檔
+    //   3. 右上「部署」→ 新增部署 → 類型選「網頁應用程式」
+    //        執行身分：我（你自己）；誰可以存取：「所有人」
+    //   4. 複製部署後的網址（結尾是 /exec），貼到下面這行取代 XXXX
+    //   ※ MAX_SEATS（滿班）與 MIN_OPEN（開班）要和腳本裡的數字一致
+    //
+    // 設定完成前為「展示模式」：滿班為模擬、送出只顯示成功、不實際寄出或寫入。
+    var GAS_ENDPOINT = "https://script.google.com/macros/s/AKfycbwk9GBacigLf4cSLC82FrH84-ozxhYUL7QWVr2q7-Zb0XpNY0d6mPifiiH6rD52KFGI/exec";   // ← Apps Script 的 /exec 網址
+    // ┌──── 修改這裡：開班 / 滿班人數（要和 Apps Script 裡的數字一致）────┐
+    var MAX_SEATS = 20;          // 滿班人數（上限）：達到就鎖住、不能再報
+    var MIN_OPEN  = 10;          // 開班人數（下限）：達到才確定開課
+    // └────────────────────────────────────────────────────────────┘
+    var OWNER_EMAIL = "infinit121717@gmail.com";
+
+    var GAS_READY = GAS_ENDPOINT.indexOf("XXXX") === -1;
+    var currentSlotData = {};    // 目前所選日期：各時段 { owner, byClass:{班別:人數} }
+
+    var params = new URLSearchParams(location.search);
+    var preset = params.get("course");
+
+    var courseSel = document.getElementById("course");
+    var noteEl    = document.getElementById("course-note");
+    var klassEl   = document.getElementById("sum-klass");
+    var seriesEl  = document.getElementById("sum-series");
+    var unitEl    = document.getElementById("unit");
+    var qtyEl     = document.getElementById("qty");
+    var qtyLineEl = document.getElementById("qtyline");
+    var totalEl   = document.getElementById("total");
+    var dateEl    = document.getElementById("date");
+    var slotWrap  = document.getElementById("slot");
+    var whenEl    = document.getElementById("sum-when");
+    var qty = 1;
+    var slot = "";
+
+    // 日期限制：今天之後，預設帶到一週後
+    (function(){
+      var t = new Date(); t.setDate(t.getDate()+1);
+      dateEl.min = t.toISOString().slice(0,10);
+    })();
+
+    function whenText(){
+      if(!dateEl.value && !slot) return "未選擇上課時間";
+      var d = dateEl.value ? dateEl.value.replace(/-/g,"/") : "（未選日期）";
+      return d + "・" + (slot || "（未選時段）");
+    }
+
+    // 模擬名額：依日期＋時段偵測是否滿班（無後端，以確定性雜湊判定）
+    function slotFull(dateStr, slotName){
+      if(!dateStr) return false;
+      var s = dateStr + "|" + slotName, h = 0;
+      for(var i=0;i<s.length;i++){ h = (h*31 + s.charCodeAt(i)) & 0xffffffff; }
+      return (Math.abs(h) % 10) < 3;   // 約 3 成機率滿班
+    }
+
+    function applySlotFull(){
+      var hasDate = !!dateEl.value;
+      var myClass = LABEL[courseSel.value] || "";
+      [].forEach.call(slotWrap.children, function(b){
+        var name = b.getAttribute("data-slot");
+        var sd = currentSlotData[name] || { owner:"", byClass:{} };
+        var byClass = sd.byClass || {};
+        var myCount = byClass[myClass] || 0;
+        var owner = sd.owner || "";
+        var lockedByOther = !!owner && owner !== myClass;   // 被別班先達開班人數鎖定
+
+        // 尚無人達開班、但別班已有人 → 競爭中（提醒使用者此時段可能被搶走）
+        var otherHasSome = false;
+        for(var k in byClass){ if(k !== myClass && byClass[k] > 0) otherHasSome = true; }
+        var contested = !owner && otherHasSome;
+
+        var full = GAS_READY ? (lockedByOther || myCount >= MAX_SEATS) : slotFull(dateEl.value, name);
+        b.classList.toggle("full", full);
+        b.classList.toggle("locked", lockedByOther);
+        if(full && b.classList.contains("on")){ b.classList.remove("on"); slot=""; }
+
+        var tag = b.querySelector(".full-tag");
+        if(tag){ tag.textContent = lockedByOther ? ("已由「" + owner + "」預約") : "已額滿"; }
+
+        var seat = b.querySelector(".seat");
+        if(seat){
+          if(GAS_READY && hasDate && !full){
+            var left = Math.max(0, MAX_SEATS - myCount);
+            var note = contested ? "（此時段競爭中）" : "";
+            if(myCount < MIN_OPEN){
+              // 未達開班人數：提示還差幾人開課
+              seat.textContent = "已報 " + myCount + " 人・尚差 " + (MIN_OPEN - myCount) + " 人開班" + note;
+              seat.classList.remove("few");
+            } else {
+              // 已可開班：顯示從滿班人數扣掉的剩餘名額
+              seat.textContent = "已報 " + myCount + " 人・剩 " + left + " 位";
+              seat.classList.toggle("few", left <= 2);   // 剩 2 位內標紅
+            }
+            seat.classList.add("show");
+          } else {
+            seat.textContent = "";
+            seat.classList.remove("show", "few");
+          }
+        }
+      });
+    }
+
+    function refreshSlots(){
+      if(!GAS_READY || !dateEl.value){ currentSlotData = {}; applySlotFull(); return; }
+      // 查詢中提示
+      [].forEach.call(slotWrap.children, function(b){
+        var seat = b.querySelector(".seat");
+        if(seat){ seat.textContent = "名額查詢中…"; seat.classList.add("show"); seat.classList.remove("few"); }
+      });
+      fetch(GAS_ENDPOINT + "?date=" + encodeURIComponent(dateEl.value))
+        .then(function(r){ return r.json(); })
+        .then(function(d){ currentSlotData = d || {}; applySlotFull(); render(); })
+        .catch(function(){
+          [].forEach.call(slotWrap.children, function(b){
+            var seat = b.querySelector(".seat"); if(seat){ seat.textContent = ""; seat.classList.remove("show","few"); }
+          });
+        });
+    }
+
+    function fmt(n){ return "NT$ " + n.toLocaleString("en-US"); }
+
+    function render(){
+      var c = courseSel.value;
+      if (seriesEl) seriesEl.textContent = SERIES[c] || "—";
+      klassEl.textContent = LABEL[c] || "—";
+      klassEl.classList.toggle("empty", !LABEL[c]);
+      var price = PRICE[c] || 0;
+      var orig  = ORIG[c] || 0;
+      unitEl.innerHTML = (orig > price ? '<del>' + fmt(orig) + '</del> ' : '') + fmt(price);
+      qtyEl.textContent = qty;
+      qtyLineEl.textContent = "× " + qty;
+      totalEl.textContent = fmt(price * qty);
+      if(whenEl){ whenEl.textContent = whenText(); whenEl.style.color = (dateEl.value && slot) ? "var(--ink)" : "var(--muted)"; }
+    }
+
+    slotWrap.addEventListener("click", function(e){
+      var b = e.target.closest("button"); if(!b) return;
+      if(b.classList.contains("full")) return;   // 滿班不可選
+      slot = b.getAttribute("data-slot");
+      [].forEach.call(slotWrap.children, function(x){ x.classList.toggle("on", x===b); });
+      render();
+    });
+    dateEl.addEventListener("change", function(){ refreshSlots(); render(); });
+
+    // auto-apply class from the homepage selection
+    if (preset && LABEL[preset]) {
+      courseSel.value = preset;
+      noteEl.textContent = "已自動帶入您在首頁選擇的「" + LABEL[preset] + "」，可在此變更。";
+      noteEl.classList.add("applied");
+    }
+
+    courseSel.addEventListener("change", function(){
+      noteEl.textContent = "已選擇「" + (LABEL[courseSel.value] || courseSel.value) + "」。";
+      noteEl.classList.remove("applied");
+      applySlotFull();   // 換班別：依新班別重新判斷各時段是否被鎖定／剩餘名額
+      render();
+    });
+    document.getElementById("plus").addEventListener("click", function(){ qty++; render(); });
+    document.getElementById("minus").addEventListener("click", function(){ if(qty>1){ qty--; render(); } });
+
+    function showDone(){
+      document.getElementById("form-side").style.display = "none";
+      var d = document.getElementById("done");
+      d.classList.add("show");
+      document.getElementById("done-msg").textContent =
+        "已為您保留「" + (LABEL[courseSel.value]||"") + "」" + qty + " 個名額（" + whenText() + "），將盡快以 Email 聯繫後續繳費與上課細節。";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    document.getElementById("pay").addEventListener("click", function(){
+      var payBtn = this;
+      var nameV  = (document.getElementById("name").value  || "").trim();
+      var phoneV = (document.getElementById("phone").value || "").trim();
+      var emailV = (document.getElementById("email").value || "").trim();
+
+      if(!dateEl.value || !slot){
+        alert("請先選擇上課日期與時段。");
+        if(!dateEl.value){ dateEl.focus(); }
+        return;
+      }
+      if(!nameV || !phoneV || !emailV){
+        alert("請填寫姓名、手機與 Email，方便我們與您聯繫。");
+        (!nameV ? document.getElementById("name")
+                : !phoneV ? document.getElementById("phone")
+                : document.getElementById("email")).focus();
+        return;
+      }
+
+      var c = courseSel.value;
+      var booking = {
+        course_series: SERIES[c] || "",
+        class_name: LABEL[c] || c,
+        date: dateEl.value,
+        slot: slot,
+        when: whenText(),
+        qty: qty,
+        price: fmt((PRICE[c]||0) * qty),
+        name: nameV,
+        phone: phoneV,
+        email: emailV
+      };
+
+      // 尚未設定 Apps Script → 展示模式：直接顯示成功（不寫入、不寄出）
+      if (!GAS_READY) { showDone(); return; }
+
+      var origText = payBtn.textContent;
+      payBtn.disabled = true;
+      payBtn.textContent = "送出中…";
+
+      fetch(GAS_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },  // 避免 CORS 預檢
+        body: JSON.stringify(booking)
+      })
+      .then(function(r){ return r.json(); })
+      .then(function(res){
+        if(res && res.ok){ showDone(); return; }
+        if(res && res.conflict){                   // 此時段已被其他班「先達開班人數」鎖定
+          currentSlotData = res.slotData || currentSlotData;
+          applySlotFull();
+          payBtn.disabled = false; payBtn.textContent = origText;
+          alert("很抱歉，這個時段已由「" + res.owner + "」優先預約（該班已達開班人數），無法再加開其他班，請改選其他時段。");
+          return;
+        }
+        if(res && res.full){                       // 伺服器端再次確認：剛好額滿
+          currentSlotData = res.slotData || currentSlotData;
+          applySlotFull();
+          payBtn.disabled = false; payBtn.textContent = origText;
+          alert("很抱歉，這個時段剛好額滿了，請改選其他時段。");
+          return;
+        }
+        throw new Error("unexpected");
+      })
+      .catch(function(){
+        payBtn.disabled = false; payBtn.textContent = origText;
+        alert("送出失敗，請稍後再試，或直接來信 " + OWNER_EMAIL + " 報名。");
+      });
+    });
+
+    render();
+  </script>
+</body>
+</html>

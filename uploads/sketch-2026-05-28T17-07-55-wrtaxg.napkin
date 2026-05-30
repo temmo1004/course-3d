@@ -1,0 +1,343 @@
+{
+  "version": 1,
+  "created": "2026-05-28T17:07:55.146Z",
+  "modified": "2026-05-29T09:23:10.987Z",
+  "objects": [
+    {
+      "id": "4l2v2ny5p",
+      "type": "rect",
+      "x": 282,
+      "y": 229.8125,
+      "width": 621,
+      "height": 377,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "2pw95yswz",
+      "type": "sticky",
+      "x": 920,
+      "y": 235.8125,
+      "width": 150,
+      "height": 150,
+      "data": {
+        "content": "這是封面",
+        "color": "yellow"
+      }
+    },
+    {
+      "id": "97g3n3uxr",
+      "type": "rect",
+      "x": 302,
+      "y": 469.8125,
+      "width": 332,
+      "height": 59,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "3c0nqqz68",
+      "type": "rect",
+      "x": 288,
+      "y": 553.8125,
+      "width": 610,
+      "height": 44,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "1z2o8gd6l",
+      "type": "rect",
+      "x": 293,
+      "y": 241.8125,
+      "width": 315,
+      "height": 303,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "lrsotmcz6",
+      "type": "rect",
+      "x": 619,
+      "y": 243.8125,
+      "width": 277,
+      "height": 302,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "22ycvtmc2",
+      "type": "rect",
+      "x": 271,
+      "y": 215.8125,
+      "width": 640,
+      "height": 1018,
+      "data": {
+        "fill": null,
+        "stroke": "#000000",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "bmxi664rr",
+      "type": "rect",
+      "x": 293,
+      "y": 697.8125,
+      "width": 600,
+      "height": 503,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "cwchrn1rk",
+      "type": "sticky",
+      "x": 931,
+      "y": 704.8125,
+      "width": 150,
+      "height": 150,
+      "data": {
+        "content": "封面底下則是該系列課程的介紹，會介紹一些該課程使用的工具以及特色。",
+        "color": "yellow"
+      }
+    },
+    {
+      "id": "4c5fhdzxj",
+      "type": "rect",
+      "x": 288,
+      "y": 622.3125,
+      "width": 615,
+      "height": 55,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "am6jjharo",
+      "type": "sticky",
+      "x": 1141,
+      "y": 550.3125,
+      "width": 150,
+      "height": 296,
+      "data": {
+        "content": "這裡是該系列課程的其他主題課選單。\n\n我希望它是參考我的「首頁.pdf」最底下的那一條：\n「零基礎用......」\n也就是用那種色塊加上文字的方式來呈現。至於其他課程的名稱，我後續可以再跟您說。",
+        "color": "yellow"
+      }
+    },
+    {
+      "id": "pqyiybijr",
+      "type": "line",
+      "x": 1127,
+      "y": 596.3125,
+      "endX": 910,
+      "endY": 648.3125,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "x7508fjmr",
+      "type": "line",
+      "x": 936,
+      "y": 784.3125,
+      "endX": 873,
+      "endY": 802.3125,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "vx03c9wyb",
+      "type": "rect",
+      "x": 288,
+      "y": 621.5,
+      "width": 188,
+      "height": 55,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "99h9wk603",
+      "type": "rect",
+      "x": 476,
+      "y": 621.5,
+      "width": 209,
+      "height": 55,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "uwxs42a85",
+      "type": "rect",
+      "x": 685,
+      "y": 621.5,
+      "width": 217,
+      "height": 55,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "fg3og544u",
+      "type": "text",
+      "x": 334,
+      "y": 642.5,
+      "data": {
+        "content": "課程名稱",
+        "fontSize": 16,
+        "color": "#8B2500",
+        "bold": false
+      },
+      "width": 64,
+      "height": 21
+    },
+    {
+      "id": "75rgwj6a7",
+      "type": "text",
+      "x": 554,
+      "y": 642.5,
+      "data": {
+        "content": "課程名稱",
+        "fontSize": 16,
+        "color": "#8B2500",
+        "bold": false
+      },
+      "width": 64,
+      "height": 21
+    },
+    {
+      "id": "d4c6qkrrt",
+      "type": "text",
+      "x": 758,
+      "y": 639.5,
+      "data": {
+        "content": "課程名稱",
+        "fontSize": 16,
+        "color": "#8B2500",
+        "bold": false
+      },
+      "width": 64,
+      "height": 21
+    },
+    {
+      "id": "p1681rmwf",
+      "type": "rect",
+      "x": 1455,
+      "y": 219.8125,
+      "width": 640,
+      "height": 1018,
+      "data": {
+        "fill": null,
+        "stroke": "#000000",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "7rfw1bl97",
+      "type": "rect",
+      "x": 1470.75,
+      "y": 239,
+      "width": 606,
+      "height": 360,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "vo9xooke5",
+      "type": "sticky",
+      "x": 2150,
+      "y": 227.8125,
+      "width": 150,
+      "height": 368,
+      "data": {
+        "content": "這是細分頁面，假設已經選擇了其中一邊的版，那就會直接在同一個頁面底下展開，變成該版的封面顯示，並且底下的系列課程主題選單會消失，轉而直接變成細分課程的介紹。\n\n細分課程的介紹要跟封面頁底下的系列課程介紹，在排版風格上保持一致。",
+        "color": "yellow"
+      }
+    },
+    {
+      "id": "oczmd2iwz",
+      "type": "line",
+      "x": 2140.75,
+      "y": 294,
+      "endX": 2106.75,
+      "endY": 310,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "afyp4w0c9",
+      "type": "rect",
+      "x": 1476.75,
+      "y": 616,
+      "width": 594,
+      "height": 590,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "p858mf403",
+      "type": "sticky",
+      "x": 2164.75,
+      "y": 759,
+      "width": 150,
+      "height": 150,
+      "data": {
+        "content": "內文跟封面頁底下的系列課程介紹欄位是一樣的，主要內容構成會以文字、靜態圖片，以及最後帶有報名連結按鈕的靜態圖片為主",
+        "color": "yellow"
+      }
+    },
+    {
+      "id": "bl8frbynt",
+      "type": "line",
+      "x": 2160.25,
+      "y": 825,
+      "endX": 2075.25,
+      "endY": 851,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    }
+  ]
+}

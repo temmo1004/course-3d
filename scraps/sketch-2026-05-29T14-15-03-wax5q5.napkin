@@ -1,0 +1,511 @@
+{
+  "version": 1,
+  "created": "2026-05-29T14:15:03.378Z",
+  "modified": "2026-05-29T14:29:10.131Z",
+  "objects": [
+    {
+      "id": "5wjmoscx8",
+      "type": "rect",
+      "x": -278.8499999999999,
+      "y": 440.9000007629395,
+      "width": 275,
+      "height": 436,
+      "data": {
+        "fill": null,
+        "stroke": "#000000",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "4iitmap2f",
+      "type": "rect",
+      "x": -274.3499999999999,
+      "y": 446.9000007629395,
+      "width": 267.5,
+      "height": 162.5,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "grfkyc8yb",
+      "type": "rect",
+      "x": -272.3499999999999,
+      "y": 613.9000007629395,
+      "width": 265,
+      "height": 25.5,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "n3z1240f5",
+      "type": "rect",
+      "x": -270.3499999999999,
+      "y": 646.9000007629395,
+      "width": 260,
+      "height": 217,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "5n5td2ifi",
+      "type": "rect",
+      "x": -268.8499999999999,
+      "y": 451.9000007629395,
+      "width": 134.5,
+      "height": 130,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "ao5wb7dwv",
+      "type": "rect",
+      "x": -129.3499999999999,
+      "y": 453.4000007629395,
+      "width": 118.5,
+      "height": 127.5,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "a3j39djmv",
+      "type": "rect",
+      "x": -269.8499999999999,
+      "y": 586.4000007629395,
+      "width": 259,
+      "height": 19,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "k5vlbjh04",
+      "type": "rect",
+      "x": -265.3499999999999,
+      "y": 549.9000007629395,
+      "width": 143.5,
+      "height": 26.5,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "8j2zosyk3",
+      "type": "rect",
+      "x": -272.3499999999999,
+      "y": 614.6500007629395,
+      "width": 82,
+      "height": 23.75,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "fvgerfpdv",
+      "type": "rect",
+      "x": -184.3499999999999,
+      "y": 614.9000007629395,
+      "width": 82,
+      "height": 24.25,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "ffm56u8xs",
+      "type": "rect",
+      "x": -91.34999999999991,
+      "y": 613.9000007629395,
+      "width": 82,
+      "height": 25.5,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "dwwsgfgub",
+      "type": "sticky",
+      "x": 9.900000000000091,
+      "y": 438.4000007629395,
+      "width": 150,
+      "height": 150,
+      "data": {
+        "content": "這是封面頁(所有細分課程公用路由入口",
+        "color": "yellow"
+      }
+    },
+    {
+      "id": "87w295okb",
+      "type": "text",
+      "x": -253.5999999999999,
+      "y": 619.9000007629395,
+      "data": {
+        "content": "課程名",
+        "fontSize": 16,
+        "color": "#8B2500",
+        "bold": false
+      },
+      "width": 48,
+      "height": 21
+    },
+    {
+      "id": "j1k49h9i1",
+      "type": "text",
+      "x": -163.5999999999999,
+      "y": 619.9000007629395,
+      "data": {
+        "content": "課程名",
+        "fontSize": 16,
+        "color": "#8B2500",
+        "bold": false
+      },
+      "width": 48,
+      "height": 21
+    },
+    {
+      "id": "0tlz4idek",
+      "type": "text",
+      "x": -74.09999999999991,
+      "y": 618.9000007629395,
+      "data": {
+        "content": "課程名",
+        "fontSize": 16,
+        "color": "#8B2500",
+        "bold": false
+      },
+      "width": 48,
+      "height": 21
+    },
+    {
+      "id": "kkwume6qn",
+      "type": "text",
+      "x": -213.0999999999999,
+      "y": 494.9000007629395,
+      "data": {
+        "content": "細分課程封面+選擇欄",
+        "fontSize": 16,
+        "color": "#8B2500",
+        "bold": false
+      },
+      "width": 140,
+      "height": 42
+    },
+    {
+      "id": "ci0xh1tg8",
+      "type": "text",
+      "x": 35.40000000000009,
+      "y": 619.4000007629395,
+      "data": {
+        "content": "細分課程選單",
+        "fontSize": 16,
+        "color": "#8B2500",
+        "bold": false
+      },
+      "width": 96,
+      "height": 21
+    },
+    {
+      "id": "3c28yihf2",
+      "type": "line",
+      "x": 34.90000000000009,
+      "y": 629.4000007629395,
+      "endX": -9.099999999999909,
+      "endY": 628.4000007629395,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "ds8p3d1x7",
+      "type": "line",
+      "x": 34.90000000000009,
+      "y": 629.4000007629395,
+      "endX": -9.099999999999909,
+      "endY": 628.4000007629395,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "r73ga1xwo",
+      "type": "text",
+      "x": 34.40000000000009,
+      "y": 733.4000007629395,
+      "data": {
+        "content": "未選擇細分課程時是課程系列的說明，選了細分課程則是細分課的程說明，底下的報名頁面是直接轉到結帳頁面，結帳頁面能選到所有課程，如果有選了細分課程則會自動套用選擇，如果沒有則讓受眾自己用下拉欄選擇",
+        "fontSize": 16,
+        "color": "#8B2500",
+        "bold": false
+      },
+      "width": 96,
+      "height": 333
+    },
+    {
+      "id": "k36hcu4d5",
+      "type": "line",
+      "x": 33.90000000000009,
+      "y": 743.4000007629395,
+      "endX": -10.099999999999909,
+      "endY": 742.4000007629395,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "idgotcbv2",
+      "type": "sticky",
+      "x": 513.4000000000001,
+      "y": 447.4000007629395,
+      "width": 150,
+      "height": 150,
+      "data": {
+        "content": "這是點擊了細分課程的班別會進到該細分課程的班別說明",
+        "color": "yellow"
+      }
+    },
+    {
+      "id": "fzb8smzs7",
+      "type": "rect",
+      "x": 210.1500000000001,
+      "y": 444.9000007629395,
+      "width": 275,
+      "height": 436,
+      "data": {
+        "fill": null,
+        "stroke": "#000000",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "qynmbd3c7",
+      "type": "rect",
+      "x": 214.6500000000001,
+      "y": 450.9000007629395,
+      "width": 267.5,
+      "height": 162.5,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "ujjm0x5hr",
+      "type": "rect",
+      "x": 216.6500000000001,
+      "y": 617.9000007629395,
+      "width": 265,
+      "height": 25.5,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "j64mhpn89",
+      "type": "rect",
+      "x": 218.6500000000001,
+      "y": 650.9000007629395,
+      "width": 260,
+      "height": 217,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "dpvvgrblg",
+      "type": "rect",
+      "x": 220.1500000000001,
+      "y": 455.9000007629395,
+      "width": 254,
+      "height": 130,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "joqjlp2ff",
+      "type": "rect",
+      "x": 219.1500000000001,
+      "y": 590.4000007629395,
+      "width": 259,
+      "height": 19,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "uerrrzpzd",
+      "type": "rect",
+      "x": 223.6500000000001,
+      "y": 553.9000007629395,
+      "width": 143.5,
+      "height": 26.5,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "hdfb0hmos",
+      "type": "rect",
+      "x": 216.6500000000001,
+      "y": 618.6500007629395,
+      "width": 82,
+      "height": 23.75,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "30i5b20wb",
+      "type": "rect",
+      "x": 304.6500000000001,
+      "y": 618.9000007629395,
+      "width": 82,
+      "height": 24.25,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "41f1v606s",
+      "type": "rect",
+      "x": 397.6500000000001,
+      "y": 617.9000007629395,
+      "width": 82,
+      "height": 25.5,
+      "data": {
+        "fill": null,
+        "stroke": "#8B2500",
+        "strokeWidth": 2
+      }
+    },
+    {
+      "id": "yc02k5hpu",
+      "type": "text",
+      "x": 235.4000000000001,
+      "y": 623.9000007629395,
+      "data": {
+        "content": "課程名",
+        "fontSize": 16,
+        "color": "#8B2500",
+        "bold": false
+      },
+      "width": 48,
+      "height": 21
+    },
+    {
+      "id": "obbcfqxlq",
+      "type": "text",
+      "x": 325.4000000000001,
+      "y": 623.9000007629395,
+      "data": {
+        "content": "課程名",
+        "fontSize": 16,
+        "color": "#8B2500",
+        "bold": false
+      },
+      "width": 48,
+      "height": 21
+    },
+    {
+      "id": "q3opd39j5",
+      "type": "text",
+      "x": 414.9000000000001,
+      "y": 622.9000007629395,
+      "data": {
+        "content": "課程名",
+        "fontSize": 16,
+        "color": "#8B2500",
+        "bold": false
+      },
+      "width": 48,
+      "height": 21
+    },
+    {
+      "id": "j38gngpkq",
+      "type": "text",
+      "x": 275.9000000000001,
+      "y": 498.9000007629395,
+      "data": {
+        "content": "細分課程封面+選擇欄",
+        "fontSize": 16,
+        "color": "#8B2500",
+        "bold": false
+      },
+      "width": 140,
+      "height": 42
+    },
+    {
+      "id": "lziur92gu",
+      "type": "text",
+      "x": -182.5999999999999,
+      "y": 726.4000007629395,
+      "data": {
+        "content": "系列課程說明",
+        "fontSize": 16,
+        "color": "#8B2500",
+        "bold": false
+      },
+      "width": 96,
+      "height": 21
+    },
+    {
+      "id": "wctdtwbeb",
+      "type": "text",
+      "x": 304.4000000000001,
+      "y": 736.4000007629395,
+      "data": {
+        "content": "細分課程說明(依班別)",
+        "fontSize": 16,
+        "color": "#8B2500",
+        "bold": false
+      },
+      "width": 96,
+      "height": 42
+    }
+  ]
+}
