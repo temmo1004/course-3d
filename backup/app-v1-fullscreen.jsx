@@ -15,23 +15,23 @@ const A = "assets/";
 
 // sprite layout (% of 16:9 artboard) — taken from each PNG's exact position in 首頁
 const FAMILY = [
-  { src: A + "char-family-doodle.png",  left: 15.8, top: 47.1, w: 16.5, cls: "hero" },
-  { src: A + "char-family-3d.png",      left: 37.4, top: 48.1, w: 16.0, cls: "hero" },
+  { src: A + "char-family-doodle.webp",  left: 15.8, top: 47.1, w: 16.5, cls: "hero" },
+  { src: A + "char-family-3d.webp",      left: 37.4, top: 48.1, w: 16.0, cls: "hero" },
 ];
 const ADULT = [
-  { src: A + "char-adult-doodle.png",   left: 66.4, top: 46.3, w: 14.8, cls: "hero" },
-  { src: A + "char-adult-3d.png",       left: 85.7, top: 45.9, w: 14.1, cls: "hero" },
+  { src: A + "char-adult-doodle.webp",   left: 66.4, top: 46.3, w: 14.8, cls: "hero" },
+  { src: A + "char-adult-3d.webp",       left: 85.7, top: 45.9, w: 14.1, cls: "hero" },
 ];
 // tapes live in their own layer above both sheets; 親子 tape sits ON TOP of 成人班
 // tape so it never covers the 「親子」 text (adult drawn first = underneath).
-const TAPE_ADULT  = { src: A + "tape-adult.png",  left: 38.58, top: 5.99, w: 39.60 };
-const TAPE_FAMILY = { src: A + "tape-family.png", left: 25.11, top: 6.12, w: 24.89 };
+const TAPE_ADULT  = { src: A + "tape-adult.webp",  left: 38.58, top: 5.99, w: 39.60 };
+const TAPE_FAMILY = { src: A + "tape-family.webp", left: 25.11, top: 6.12, w: 24.89 };
 
 const ALL_IMG = [
-  A+"paper-white.png", A+"kraft-wide.png", A+"title.png", A+"subtitle-clean-y56.png",
+  A+"paper-white.webp", A+"kraft-wide.webp", A+"title.webp", A+"subtitle-clean-y56.webp",
   TAPE_ADULT.src, TAPE_FAMILY.src,
   ...FAMILY.map(s=>s.src), ...ADULT.map(s=>s.src),
-  A+"cover-family.png", A+"cover-adult.png",
+  A+"cover-family.webp", A+"cover-adult.webp",
 ];
 
 function Sprite({ s }) {
@@ -128,7 +128,7 @@ function App() {
     enter(side);
   };
 
-  const coverBg = entered === "family" ? A+"cover-family.png" : A+"cover-adult.png";
+  const coverBg = entered === "family" ? A+"cover-family.webp" : A+"cover-adult.webp";
 
   const stageCls = [
     "stage",
@@ -151,7 +151,7 @@ function App() {
         <div className="layerbox cover-layer" style={{ backgroundImage:`url(${coverBg})` }} />
 
         {/* left side: white paper (static full-bleed base, always under kraft) */}
-        <img className="white-paper" src={A+"paper-white.png"} alt="" />
+        <img className="white-paper" src={A+"paper-white.webp"} alt="" />
         {/* 親子班 doodles — pop forward / recede & slide away, glued to the paper */}
         <div className="family-content">
           {FAMILY.map((s,i) => <Sprite key={i} s={s} />)}
@@ -160,7 +160,7 @@ function App() {
         {/* right unit — kraft paper + 成人班 doodles slide / dim together as one piece */}
         <div className="kraft-layer">
           <div className="kraft-slide">
-            <img className="kraft-paper" src={A+"kraft-wide.png"} alt="" />
+            <img className="kraft-paper" src={A+"kraft-wide.webp"} alt="" />
             {ADULT.map((s,i) => <Sprite key={i} s={s} />)}
           </div>
         </div>
@@ -176,9 +176,9 @@ function App() {
 
         {/* exact title + subtitle from the 首頁 PNG */}
         <div className="layerbox title-layer">
-          <img className="title-img" src={A+"title.png"} alt="塗鴉變 3D 模型？！" />
+          <img className="title-img" src={A+"title.webp"} alt="塗鴉變 3D 模型？！" />
           {t.showSubtitle &&
-            <img className="subtitle-img" src={A+"subtitle-clean-y56.png"} alt="零基礎用隨手 塗鴉+AI 創作出你的列印公仔" />}
+            <img className="subtitle-img" src={A+"subtitle-clean-y56.webp"} alt="零基礎用隨手 塗鴉+AI 創作出你的列印公仔" />}
         </div>
 
         {/* hit zones */}

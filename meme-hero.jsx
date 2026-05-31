@@ -17,35 +17,35 @@ function MemeLayers({ coverBg }) {
 
       {/* LEFT — 健康乖寶寶班 */}
       <div className="m-scene m-left">
-        <img className="m-bg"   src={MA + "meme-bg-galaxy.png"} alt="" />
+        <img className="m-bg"   src={MA + "meme-bg-galaxy.webp"} alt="" />
         <div className="m-hero-pos m-pos-left">
-          <img className="m-hero m-hero-left" src={MA + "meme-cat.png?v=2"} alt="健康乖寶寶班" />
+          <img className="m-hero m-hero-left" src={MA + "meme-cat.webp?v=2"} alt="健康乖寶寶班" />
         </div>
-        <img className="m-label m-label-left" src={MA + "meme-label-zero.png"} alt="0%" />
+        <img className="m-label m-label-left" src={MA + "meme-label-zero.webp"} alt="0%" />
       </div>
 
       {/* RIGHT — 酒鬼班 */}
       <div className="m-scene m-right">
-        <img className="m-bg"   src={MA + "meme-bg-white.png"} alt="" />
+        <img className="m-bg"   src={MA + "meme-bg-white.webp"} alt="" />
         <div className="m-hero-pos m-pos-right">
-          <img className="m-hero m-hero-right" src={MA + "meme-dicaprio.png?v=2"} alt="酒鬼班" />
+          <img className="m-hero m-hero-right" src={MA + "meme-dicaprio.webp?v=2"} alt="酒鬼班" />
         </div>
-        <img className="m-label m-label-right" src={MA + "meme-label-drunk.png"} alt="酒鬼" />
+        <img className="m-label m-label-right" src={MA + "meme-label-drunk.webp"} alt="酒鬼" />
       </div>
 
       {/* title + rainbow subtitle band (single combined PNG) */}
       <div className="layerbox title-layer m-title">
-        <img className="m-titleimg" src={MA + "meme-title.png"} alt="迷因變 3D 模型？！ — 零基礎用網路迷因+AI 創作出您的列印公仔" />
+        <img className="m-titleimg" src={MA + "meme-title.webp"} alt="迷因變 3D 模型？！ — 零基礎用網路迷因+AI 創作出您的列印公仔" />
       </div>
     </React.Fragment>
   );
 }
 
 const MEME_IMG = [
-  MA+"meme-bg-galaxy.png", MA+"meme-bg-white.png", MA+"meme-title.png",
-  MA+"meme-cat.png", MA+"meme-dicaprio.png",
-  MA+"meme-label-zero.png", MA+"meme-label-drunk.png",
-  MA+"meme-cover-good.png", MA+"meme-cover-drunk.png",
+  MA+"meme-bg-galaxy.webp", MA+"meme-bg-white.webp", MA+"meme-title.webp",
+  MA+"meme-cat.webp", MA+"meme-dicaprio.webp",
+  MA+"meme-label-zero.webp", MA+"meme-label-drunk.webp",
+  MA+"meme-cover-good.webp", MA+"meme-cover-drunk.webp",
 ];
 
 Object.assign(window, { MemeLayers, MEME_IMG });

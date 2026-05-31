@@ -22,15 +22,15 @@ const COURSES = [
   { id:"doodle", name:"塗鴉變 3D 模型？！", hero:"doodle",
     left:  { key:"family", label:"親子班" },
     right: { key:"adult",  label:"成人班" },
-    cover: { family: A+"cover-family.png", adult: A+"cover-adult.png" } },
+    cover: { family: A+"cover-family.webp", adult: A+"cover-adult.webp" } },
   { id:"meme", name:"迷因變成 3D 模型？！", hero:"meme",
     left:  { key:"good",  label:"健康乖寶寶班" },
     right: { key:"drunk", label:"酒鬼班" },
-    cover: { good: A+"meme-cover-good.png", drunk: A+"meme-cover-drunk.png" } },
+    cover: { good: A+"meme-cover-good.webp", drunk: A+"meme-cover-drunk.webp" } },
   { id:"tbd", name:"敬請期待", hero:"doodle", comingSoon:true,
     left:  { key:"family", label:"親子班" },
     right: { key:"adult",  label:"成人班" },
-    cover: { family: A+"cover-family.png", adult: A+"cover-adult.png" } },
+    cover: { family: A+"cover-family.webp", adult: A+"cover-adult.webp" } },
 ];
 
 // 所有 hero 用到的素材一次預載（兩套 hero 的清單由各自檔案匯出）
@@ -48,9 +48,9 @@ const SERIES_MAIN = {
   q: <>想親手做出專屬公仔或道具，卻卡在第一步？<br/>買了 3D 列印機，卻只能印現成的檔案？</>,
   lead: <>看到網路上的 3D 列印公仔、物件好羨慕，但一想到要學複雜的建模軟體，就讓您打退堂鼓嗎？其實，您需要的不是高超的 3D 技巧，而是<strong>更聰明的工具</strong>！這系列課程將帶您跳過最繁瑣的建模過程，直接用 AI 輔助您實現腦中的創意！</>,
   steps: [
-    { t: "發揮創意", img: "assets/feature-doodle.png", d: "從一個天馬行空的想法開始，帶您創意思考，並以 AI 輔助迭代。不必會畫畫，敢想就是起點！" },
-    { t: "AI 建模",  img: "assets/feature-ai.png",     d: "用 AI 把平面的想法轉為立體的模型，快速產出您的模型草模。" },
-    { t: "列印公仔", img: "assets/feature-print.png",  d: "把您的創意從螢幕中拿出來，3D 列印出可以握在手上的實體。" },
+    { t: "發揮創意", img: "assets/feature-doodle.webp", d: "從一個天馬行空的想法開始，帶您創意思考，並以 AI 輔助迭代。不必會畫畫，敢想就是起點！" },
+    { t: "AI 建模",  img: "assets/feature-ai.webp",     d: "用 AI 把平面的想法轉為立體的模型，快速產出您的模型草模。" },
+    { t: "列印公仔", img: "assets/feature-print.webp",  d: "把您的創意從螢幕中拿出來，3D 列印出可以握在手上的實體。" },
   ],
   learn: [
     { h: "AI 效率創作", d: "用 Vizcom AI 解放您的想像力。" },
@@ -69,9 +69,9 @@ const SERIES_MAIN = {
 
 // 迷因課兩班共用的「發揮創意／AI 建模／列印公仔」三圖（刀盾犬迷因 → 上色模型 → 列印公仔）
 const MEME_FEATS = [
-  { t: "網路迷因檢討會", img: "assets/meme-feat-create.png?v=2", d: "蒐集以及與同班同學們交流、分享，組成您的超級迷因大軍，並挑到對味的梗圖。" },
-  { t: "AI 3D 小廢物煉成",  img: "assets/meme-feat-ai.png?v=2",     d: <>把您對味的梗圖迷因，透過煉成術調整細節或二創，再由平面轉為立體模型，<span style={{color:'#d6342c',fontWeight:800,textDecoration:'line-through'}}>嚴禁大葛葛！</span></> },
-  { t: "列印公仔", img: "assets/meme-feat-print.png?v=2",  d: <>我：我需要那個酷東西 TT<br/>列印姬：欸，這個可以，這個骨力！</> },
+  { t: "網路迷因檢討會", img: "assets/meme-feat-create.webp?v=2", d: "蒐集以及與同班同學們交流、分享，組成您的超級迷因大軍，並挑到對味的梗圖。" },
+  { t: "AI 3D 小廢物煉成",  img: "assets/meme-feat-ai.webp?v=2",     d: <>把您對味的梗圖迷因，透過煉成術調整細節或二創，再由平面轉為立體模型，<span style={{color:'#d6342c',fontWeight:800,textDecoration:'line-through'}}>嚴禁大葛葛！</span></> },
+  { t: "列印公仔", img: "assets/meme-feat-print.webp?v=2",  d: <>我：我需要那個酷東西 TT<br/>列印姬：欸，這個可以，這個骨力！</> },
 ];
 
 // 各主題課程的「公版課程介紹」內容（細分頁共用該課程的大標題/中標題/三步驟）
@@ -81,9 +81,9 @@ const COURSE_INTRO = {
     q: <>想要以更特別的方式紀念孩子的傑作嗎？<br/>想刺激孩子的想像力嗎？<br/>想與孩子創造特別的回憶嗎？</>,
     lead: <>看到網路上好多可愛的公仔，有沒有想過也能將您孩子的作品或想像力，轉變為值得收藏的公仔？來吧！讓您與您的孩子一起來當一段時間的小孩，一起留下特別的記憶吧！</>,
     steps: [
-      { t: "發揮創意", img: "assets/feature-doodle.png", d: "與孩子一起在紙上揮灑腦內的想像，並導入電腦中，使用 AI 快速延伸紙上塗鴉的更多可能性～" },
-      { t: "AI 建模",  img: "assets/feature-ai.png",     d: "用 AI 把平面的塗鴉發展轉為立體的模型，快速生成您孩子作品的 3D 模型。" },
-      { t: "列印公仔", img: "assets/feature-print.png",  d: "將您孩子的創意從螢幕中拿出來，3D 列印出可以握在手上的寶貴回憶。" },
+      { t: "發揮創意", img: "assets/feature-doodle.webp", d: "與孩子一起在紙上揮灑腦內的想像，並導入電腦中，使用 AI 快速延伸紙上塗鴉的更多可能性～" },
+      { t: "AI 建模",  img: "assets/feature-ai.webp",     d: "用 AI 把平面的塗鴉發展轉為立體的模型，快速生成您孩子作品的 3D 模型。" },
+      { t: "列印公仔", img: "assets/feature-print.webp",  d: "將您孩子的創意從螢幕中拿出來，3D 列印出可以握在手上的寶貴回憶。" },
     ],
   },
   meme: {
@@ -105,9 +105,9 @@ const DETAIL_EXTRA = {
     heading: "親子班・專屬安排",
     body: <>親子班以孩子主導、家長協助的步調進行，課堂節奏緩慢。<br/><br/>簡化了工具介紹，讓 6 歲以上的小朋友也可以自己動手。保留充分的共創時間，將腦中的發想從電腦中延伸，並最後列印成模型，變成一段珍貴的親子回憶。</>,
     images: [
-      { src: "assets/family-inner-1.png?v=2", wide: true },
-      { src: "assets/family-inner-3.png", wide: true },
-      { src: "assets/family-inner-2.png", wide: true },
+      { src: "assets/family-inner-1.webp?v=2", wide: true },
+      { src: "assets/family-inner-3.webp", wide: true },
+      { src: "assets/family-inner-2.webp", wide: true },
     ],
     prepare: {
       required: [
@@ -136,10 +136,10 @@ const DETAIL_EXTRA = {
       { label: "電腦硬體要求", value: "Windows 10+ 或 macOS 11+" },
     ],
     signupArt: {
-      base:    "assets/family-signup-base.png",
-      cloudq:  "assets/family-signup-cloud-q.png",
-      monster: "assets/family-signup-monster-cut.png",
-      button:  "assets/family-signup-button-cut.png",
+      base:    "assets/family-signup-base.webp",
+      cloudq:  "assets/family-signup-cloud-q.webp",
+      monster: "assets/family-signup-monster-cut.webp",
+      button:  "assets/family-signup-button-cut.webp",
       course:  "family",
       hotspot: { left: 63.5, top: 10, width: 30, height: 18 },
     },
@@ -152,16 +152,16 @@ const DETAIL_EXTRA = {
     q: <>腦中或筆記本有很多想法卻苦於軟體太難，無法變成 3D 嗎？<br/>有自己的角色或作品，卻一直停留在平面圖像嗎？<br/>買了 3D 列印機，卻還只下載別人的檔案？</>,
     lead: <>這堂課不要求您先成為建模高手，而是帶您用 AI 工作流，把塗鴉、草圖或既有作品轉化成 3D 模型，最後完成一件屬於您的列印公仔。</>,
     steps: [
-      { t: "發揮創意", img: "assets/feature-doodle.png", d: "將腦中的想法揮洒在畫布上並導入電腦中，使用 AI 快速延伸疊代，探索出更多可能性。" },
-      { t: "AI 建模",  img: "assets/feature-ai.png",     d: "用 AI 把平面的塗鴉發展轉為立體的模型，快速生成您作品的 3D 模型。" },
-      { t: "列印公仔", img: "assets/feature-print.png",  d: "將您的作品從螢幕中拿出來，3D 列印出可以握在手中的實體。" },
+      { t: "發揮創意", img: "assets/feature-doodle.webp", d: "將腦中的想法揮洒在畫布上並導入電腦中，使用 AI 快速延伸疊代，探索出更多可能性。" },
+      { t: "AI 建模",  img: "assets/feature-ai.webp",     d: "用 AI 把平面的塗鴉發展轉為立體的模型，快速生成您作品的 3D 模型。" },
+      { t: "列印公仔", img: "assets/feature-print.webp",  d: "將您的作品從螢幕中拿出來，3D 列印出可以握在手中的實體。" },
     ],
     heading: "成人班・專屬內容",
     body: "更多的流程展示，較快的課程節奏，體驗由設計師視角出發的 AI 創作工作流；體驗能清楚掌握發展脈絡，卻又令人驚喜的 AI 工具 VIZCOM。",
     images: [
-      { src: "assets/adult-inner-1.png", wide: true },
-      { src: "assets/adult-inner-2.png", wide: true },
-      { src: "assets/adult-inner-3.png", wide: true },
+      { src: "assets/adult-inner-1.webp", wide: true },
+      { src: "assets/adult-inner-2.webp", wide: true },
+      { src: "assets/adult-inner-3.webp", wide: true },
     ],
     prepare: {
       required: [
@@ -184,10 +184,10 @@ const DETAIL_EXTRA = {
       { label: "電腦硬體要求", value: "Windows 10+ 或 macOS 11+" },
     ],
     signupArt: {
-      base:    "assets/adult-signup-base.png",
-      cloudq:  "assets/family-signup-cloud-q.png",
-      monster: "assets/family-signup-monster-cut.png",
-      button:  "assets/family-signup-button-cut.png",
+      base:    "assets/adult-signup-base.webp",
+      cloudq:  "assets/family-signup-cloud-q.webp",
+      monster: "assets/family-signup-monster-cut.webp",
+      button:  "assets/family-signup-button-cut.webp",
       course:  "adult",
       hotspot: { left: 63.5, top: 10, width: 30, height: 18 },
     },
@@ -205,8 +205,8 @@ const DETAIL_EXTRA = {
     heading: "健康乖寶寶班・專屬安排",
     body: <>節奏輕鬆有趣，與同班同學們交流各自珍藏的梗圖。喝酒不能解決問題，但喝牛奶也不行，因此，隨班附贈一人一瓶牛奶！<span className="sign-placard">快來</span></>,
     images: [
-      { src: "assets/good-inner-1.png", wide: true },
-      { src: "assets/good-inner-2.png", wide: true },
+      { src: "assets/good-inner-1.webp", wide: true },
+      { src: "assets/good-inner-2.webp", wide: true },
     ],
     signupArt: { kind: "meme", course: "good" },
     prepare: {
@@ -228,16 +228,16 @@ const DETAIL_EXTRA = {
     q: <>想邊喝邊上課？<br/>想找能喝酒又有趣的活動？<br/>愛喝酒又愛迷因還愛公仔？</>,
     lead: <>這堂課就是專門為各位酒鬼設計的，生活中身心俱疲了嗎？來一場下班後的桌面小廢物煉成之旅！！！</>,
     steps: [
-      { t: "網路迷因檢討會＋酒精", img: "assets/meme-feat-create.png?v=2", d: "蒐集以及與同學們交流、分享，組成您的超級迷因大軍，並挑到對味的梗圖。搭配精選酒款碰出新體驗。" },
-      { t: "AI 3D 小廢物煉成",  img: "assets/meme-feat-ai.png?v=2",     d: <>把您對味的梗圖迷因，透過煉成術調整細節或二創，讓您的角色也一起喝醉，再由平面轉為立體模型，<span style={{color:'#d6342c',fontWeight:800,textDecoration:'line-through'}}>嚴禁大葛葛！</span></> },
-      { t: "列印公仔", img: "assets/meme-feat-print.png?v=2",  d: "我：我需要那個酷東西 TT　列印姬：欸，這個可以，這個骨力！" },
+      { t: "網路迷因檢討會＋酒精", img: "assets/meme-feat-create.webp?v=2", d: "蒐集以及與同學們交流、分享，組成您的超級迷因大軍，並挑到對味的梗圖。搭配精選酒款碰出新體驗。" },
+      { t: "AI 3D 小廢物煉成",  img: "assets/meme-feat-ai.webp?v=2",     d: <>把您對味的梗圖迷因，透過煉成術調整細節或二創，讓您的角色也一起喝醉，再由平面轉為立體模型，<span style={{color:'#d6342c',fontWeight:800,textDecoration:'line-through'}}>嚴禁大葛葛！</span></> },
+      { t: "列印公仔", img: "assets/meme-feat-print.webp?v=2",  d: "我：我需要那個酷東西 TT　列印姬：欸，這個可以，這個骨力！" },
     ],
     heading: "酒鬼班・專屬內容",
     body: "課程以「千杯千杯再千杯」為主要課程基調，與特色酒吧合作，提供優質酒精支援。讓我們在微醺的狀態一同把您的迷因角色也灌醉吧！",
     images: [
-      { src: "assets/drunk-inner-1.png", wide: true },
-      { src: "assets/drunk-inner-2.png", wide: true },
-      { src: "assets/drunk-inner-3.png", wide: true },
+      { src: "assets/drunk-inner-1.webp", wide: true },
+      { src: "assets/drunk-inner-2.webp", wide: true },
+      { src: "assets/drunk-inner-3.webp", wide: true },
     ],
     signupArt: { kind: "meme", course: "drunk" },
     prepare: {
@@ -318,16 +318,16 @@ function MemeSignupArt({ cfg }) {
   };
   return (
     <div className={"msa" + (go ? " go" : "")}>
-      <img className="msa-label-r" src={A + "meme-signup-label-r.png"} alt="上完課" />
-      <img className="msa-label-l" src={A + "meme-signup-label-l.png"} alt="敲打以報名" />
-      <img className="msa-black" src={A + "meme-signup-muscle-black.png"} alt="上完課前" />
-      <img className="msa-color" src={A + "meme-signup-muscle-color.png"} alt="上完課後的肌肉狗" />
-      <img className="msa-btn" src={A + "meme-signup-button.png"} alt="不按嗎" />
+      <img className="msa-label-r" src={A + "meme-signup-label-r.webp"} alt="上完課" />
+      <img className="msa-label-l" src={A + "meme-signup-label-l.webp"} alt="敲打以報名" />
+      <img className="msa-black" src={A + "meme-signup-muscle-black.webp"} alt="上完課前" />
+      <img className="msa-color" src={A + "meme-signup-muscle-color.webp"} alt="上完課後的肌肉狗" />
+      <img className="msa-btn" src={A + "meme-signup-button.webp"} alt="不按嗎" />
       <div className="msa-dog-grp">
-        <img className="msa-sit" src={A + "meme-signup-dog-sit.png"} alt="" />
-        <img className="msa-bat" src={A + "meme-signup-bat.png"} alt="" />
+        <img className="msa-sit" src={A + "meme-signup-dog-sit.webp"} alt="" />
+        <img className="msa-bat" src={A + "meme-signup-bat.webp"} alt="" />
       </div>
-      <img className="msa-bonk" src={A + "meme-signup-bonk.png"} alt="BONK" />
+      <img className="msa-bonk" src={A + "meme-signup-bonk.webp"} alt="BONK" />
       <button className="msa-hotspot" onClick={click}
         aria-label="敲打紅色按鈕，前往報名">報名</button>
     </div>
@@ -367,7 +367,7 @@ function CourseIntro({ extra, courseName }) {
         {feats.map((f, i) => (
           <div className="feature" key={i}>
             {f.img
-              ? <div className="feat-art"><img src={f.img} alt={f.t} /></div>
+              ? <div className="feat-art"><img src={f.img} alt={f.t} loading="lazy" decoding="async" /></div>
               : <div className="ph">課程示意圖</div>}
             <h4>{f.t}</h4>
             <p>{f.d}</p>
@@ -410,7 +410,7 @@ function CourseIntro({ extra, courseName }) {
               typeof im === "string"
                 ? <div className="ph extra-ph" key={i}>{im}</div>
                 : <figure className={"extra-shot" + (im.wide ? " wide" : "")} key={i}>
-                    <img src={im.src} alt={im.cap || ""} />
+                    <img src={im.src} alt={im.cap || ""} loading="lazy" decoding="async" />
                     {im.cap && <figcaption>{im.cap}</figcaption>}
                   </figure>
             )}
