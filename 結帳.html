@@ -92,6 +92,14 @@
   /* 被其他班「先達開班人數」鎖定的時段：用中性灰，與「額滿」區別 */
   .seg button.locked .full-tag { background:#8a8275; }
   .seg button.full .sub { display:none; }
+  /* 尚未開放的時段（例：6/12 前的晚上班）：灰化、不可選 */
+  .seg button.blocked { cursor:not-allowed; opacity:.5; background:#efe9dc; }
+  .seg button.blocked:hover { border-color:var(--line); }
+  .seg button.blocked .seat { display:none; }
+  .seg button.blocked .full-tag {
+    display:inline-block; margin-top:4px; font-size:11px; font-weight:900;
+    color:#fff; background:#8a8275; padding:1px 7px; border-radius:999px; letter-spacing:.04em;
+  }
   .seg button .seat { display:none; margin-top:4px; font-size:11px; font-weight:800; color:#6a5f49; }
   .seg button .seat.show { display:block; }
   .seg button .seat.few { color:#b23b3b; }
@@ -319,6 +327,14 @@
       return d + "・" + (slot || "（未選時段）");
     }
 
+    // 晚上班開放判斷：2026/6/12（含）以前不開放（此日期前老師僅開早上／下午班）
+    // 依「上課日期」判定；尚未選日期時也先灰化，避免誤選。
+    var EVENING_OPEN_AFTER = "2026-06-12";   // 此日期（含）以前晚上班不開放
+    function eveningClosed(dateStr){
+      if(!dateStr) return true;              // 未選日期 → 先灰化晚上班
+      return dateStr <= EVENING_OPEN_AFTER;  // YYYY-MM-DD 字串可直接比較
+    }
+
     // 模擬名額：依日期＋時段偵測是否滿班（無後端，以確定性雜湊判定）
     function slotFull(dateStr, slotName){
       if(!dateStr) return false;
@@ -332,6 +348,20 @@
       var myClass = LABEL[courseSel.value] || "";
       [].forEach.call(slotWrap.children, function(b){
         var name = b.getAttribute("data-slot");
+
+        // 晚上班：6/12（含）以前尚未開放（老師此前只開早上／下午班）→ 灰化、不可選
+        if(name === "晚上" && eveningClosed(dateEl.value)){
+          b.classList.add("blocked");
+          b.classList.remove("full", "locked");
+          if(b.classList.contains("on")){ b.classList.remove("on"); slot = ""; }
+          var bt = b.querySelector(".full-tag");
+          if(bt){ bt.textContent = "6/12 後開放"; }
+          var bs = b.querySelector(".seat");
+          if(bs){ bs.textContent = ""; bs.classList.remove("show", "few"); }
+          return;
+        }
+        b.classList.remove("blocked");
+
         var sd = currentSlotData[name] || { owner:"", byClass:{} };
         var byClass = sd.byClass || {};
         var myCount = byClass[myClass] || 0;
@@ -409,7 +439,7 @@
 
     slotWrap.addEventListener("click", function(e){
       var b = e.target.closest("button"); if(!b) return;
-      if(b.classList.contains("full")) return;   // 滿班不可選
+      if(b.classList.contains("full") || b.classList.contains("blocked")) return;   // 滿班／未開放不可選
       slot = b.getAttribute("data-slot");
       [].forEach.call(slotWrap.children, function(x){ x.classList.toggle("on", x===b); });
       render();
@@ -511,6 +541,7 @@
       });
     });
 
+    applySlotFull();   // 初始即套用（晚上班灰化等狀態）
     render();
   </script>
 </body>
