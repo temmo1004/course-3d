@@ -1,0 +1,813 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>塗鴉變 3D 模型  — 招生分流首頁</title>
+
+<!-- GA4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6P4C0V0QH0"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-6P4C0V0QH0');
+</script>
+
+<!-- Meta Pixel -->
+<script>
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init','1501976728044362');
+fbq('track','PageView');
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  :root {
+    --paper:#ece5d8;
+    --ink:#1f1d18;
+    --yellow:#F3D11E;
+    --muted:#8a7f6a;
+  }
+  html { scroll-behavior:smooth; }
+  body {
+    font-family:"Noto Sans TC", sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    -webkit-tap-highlight-color:transparent;
+    overflow-x:hidden;
+  }
+  #root { width:100%; }
+  img { display:block; }
+
+  .page { width:100%; min-height:100%; padding-bottom:90px; }
+
+  /* ===================================================================
+     HERO — the 16:9 torn-paper split, now a FRAMED section in the page
+     =================================================================== */
+  .hero-frame {
+    position:relative;
+    width:min(94vw, 1200px);
+    aspect-ratio:16 / 9;
+    margin:clamp(20px,5vh,54px) auto 0;
+    overflow:hidden;
+    border-radius:9px;
+    background:#e9e4da;
+    box-shadow:0 26px 60px -22px rgba(70,52,24,.5), 0 4px 16px rgba(70,52,24,.13);
+  }
+  .stage { cursor:default; }
+
+  /* 16:9 artboard exactly fills the frame — composition matches the source PNG */
+  .artboard { position:absolute; inset:0; width:100%; height:100%; --split:50%; }
+
+  /* =====================================================================
+     MOBILE (portrait) — gated by html.mobv, set via JS matchMedia / #mobpv.
+     Using a class (not a media query) so the layout can be force-previewed.
+     All mobile rules avoid vw so a fixed-width preview renders faithfully.
+     ===================================================================== */
+  /* —— mobile hero: KEEP the desktop 16:9 torn-paper split. The squeeze
+        effect auto-demos and responds to long-press (driven from app.jsx),
+        so the same dynamic the desktop has now plays on phones too. —— */
+  html.mobv .hero-frame {
+    width:100%; margin:0; border-radius:0;
+    aspect-ratio:16 / 10;            /* a touch taller for presence */
+    overflow:hidden;
+    box-shadow:0 8px 18px -10px rgba(70,52,24,.4);
+  }
+  /* Keep the artwork's TRUE 16:9 proportions and scale the WHOLE board up
+     uniformly to fill the slightly-taller frame. Tape, characters, title
+     and the subtitle bar all grow together and every gap stays identical —
+     it's a real zoom, not a stretch. Overflow trims only the blank side
+     margins (never the characters at this scale). */
+  html.mobv .artboard {
+    --mob:1.0; touch-action:pan-y;
+    inset:auto; left:50%; top:50%;
+    width:100%; height:auto; aspect-ratio:16 / 9;
+    transform:translate(-50%,-50%) scale(1.112);
+    transform-origin:center center;
+  }
+
+  /* the squeeze IS the mobile attractor now — silence the old sprite
+     wobble/breathe/glow so the two motions don't fight each other */
+  html.mobv .stage .sprite.hero,
+  html.mobv .stage .m-hero,
+  html.mobv .stage .m-hero-left,
+  html.mobv .stage .m-hero-right { animation:none !important; }
+
+  /* full-bleed layers */
+  .layerbox { position:absolute; inset:0; }
+  .cover-layer { z-index:0; opacity:0; transition:opacity .45s ease; background-size:cover; background-position:center; }
+
+  /* ===== 敬請期待 cover (coming-soon course) ===== */
+  .coming-soon {
+    position:absolute; inset:0; z-index:5;
+    display:flex; align-items:center; justify-content:center;
+    background:#000;
+  }
+  .coming-soon span {
+    color:#fff; font-weight:900; letter-spacing:.14em;
+    font-size:clamp(34px,5.2vw,72px);
+  }
+
+  .scene { position:absolute; inset:0; z-index:2; will-change:clip-path; }
+  .scene.left  { clip-path: inset(0 calc(100% - var(--split)) 0 0); transition:clip-path .55s cubic-bezier(.45,.05,.25,1); }
+  .scene.right { clip-path: inset(0 0 0 var(--split));            transition:clip-path .55s cubic-bezier(.45,.05,.25,1); }
+
+  /* white paper: static full-bleed base, ALWAYS under the kraft sheet */
+  .white-paper { position:absolute; inset:0; width:100%; height:100%;
+    object-fit:cover; object-position:center; z-index:1;
+    transition:transform .62s cubic-bezier(.5,.02,.2,1), filter .5s ease;
+    will-change:transform; }
+  .stage.dim.active-right .white-paper { filter:brightness(.9); }
+
+  .family-content {
+    position:absolute; inset:0; z-index:2; --spr-scale:var(--fam-scale,1);
+    transform:translateX(var(--fam-tx,0));
+    filter:brightness(var(--fam-bright,1));
+    transition:transform .55s cubic-bezier(.34,1.2,.4,1), filter .45s ease;
+    will-change:transform; pointer-events:none;
+  }
+  .kraft-layer { position:absolute; inset:0; z-index:3;
+    transition:transform .62s cubic-bezier(.5,.02,.2,1);
+    will-change:transform; }
+  .kraft-slide {
+    position:absolute; inset:0; --spr-scale:var(--adu-scale,1);
+    transform:translateX(var(--kraft-dx,0));
+    filter:brightness(var(--adu-bright,1));
+    transition:transform .55s cubic-bezier(.34,1.2,.4,1), filter .45s ease;
+    will-change:transform;
+  }
+  .stage.active-left  .family-content { z-index:6; }
+  .stage.active-right .kraft-layer    { z-index:6; }
+
+  .kraft-paper {
+    position:absolute; left:0; top:0; width:141%; height:100%;
+    filter:drop-shadow(-6px 2px 7px rgba(70,52,24,.2));
+  }
+  .stage.shadow-none .kraft-paper { filter:none; }
+  .stage.shadow-deep .kraft-paper { filter:drop-shadow(-13px 4px 13px rgba(70,52,24,.34)); }
+
+  .sprite { position:absolute;
+            transform:translate(-50%,-50%) scale(calc(var(--spr-scale,1) * var(--mob,1)));
+            transition:transform .5s cubic-bezier(.34,1.25,.45,1), filter .45s ease;
+            user-select:none; -webkit-user-drag:none; pointer-events:none; }
+
+  .tape-layer { position:absolute; inset:0; z-index:7; pointer-events:none;
+                transition:opacity .45s ease, transform .55s cubic-bezier(.5,.02,.2,1); }
+  .tape { position:absolute; display:block; transform-origin:center center;
+          transition:transform .55s cubic-bezier(.34,1.2,.4,1), filter .45s ease;
+          will-change:transform; user-select:none; -webkit-user-drag:none; }
+  .tape-adult  { transform:translateX(var(--kraft-dx,0)) scale(var(--adu-scale,1));
+                 filter:brightness(var(--adu-bright,1)); }
+  .tape-family { transform:translateX(var(--fam-tx,0))   scale(var(--fam-scale,1));
+                 filter:brightness(var(--fam-bright,1)); }
+  .stage.tearing .tape-layer, .stage.revealed .tape-layer { opacity:0; transform:translateY(-22%) rotate(-1.5deg); }
+
+  /* title + subtitle — cropped straight from the 首頁 PNG (exact match) */
+  .title-layer { z-index:8; pointer-events:none; transition:opacity .4s ease, transform .5s ease; }
+  .title-img { position:absolute; left:41.4%; top:77%; transform:translate(-50%,-50%); width:68.3%; }
+  .subtitle-img { position:absolute; left:0; bottom:0; width:100%; display:block; }
+
+  /* hit zones */
+  .hit { position:absolute; top:0; bottom:13.9%; z-index:9; cursor:pointer; }
+  .hit.left  { left:0; width:var(--split); }
+  .hit.right { left:var(--split); right:0; }
+
+  /* tear: the two sides part from the centre, revealing the cover */
+  .stage.tearing .white-paper,    .stage.revealed .white-paper,
+  .stage.tearing .family-content, .stage.revealed .family-content {
+    transform:translateX(-105%) rotate(-2deg); }
+  .stage.tearing .kraft-layer,    .stage.revealed .kraft-layer {
+    transform:translateX(105%) rotate(2deg); }
+  .stage.tearing .title-layer, .stage.revealed .title-layer { opacity:0; transform:scale(.97); }
+  .stage.tearing .cover-layer, .stage.revealed .cover-layer { opacity:1; }
+  .stage.tearing .hit { pointer-events:none; }
+
+  /* ===================================================================
+     MEME HERO — galaxy / white split (full-canvas stacked layers)
+     =================================================================== */
+  .m-scene { position:absolute; inset:0; z-index:2; will-change:clip-path, transform; }
+  .m-scene.m-left  { clip-path: inset(0 calc(100% - var(--split)) 0 0);
+                     background:#0a0a16;
+                     filter:brightness(var(--fam-bright,1));
+                     transition:clip-path .55s cubic-bezier(.45,.05,.25,1),
+                                transform .62s cubic-bezier(.5,.02,.2,1),
+                                filter .45s ease; }
+  .m-scene.m-right { clip-path: inset(0 0 0 var(--split));
+                     background:#ffffff;
+                     filter:brightness(var(--adu-bright,1));
+                     transition:clip-path .55s cubic-bezier(.45,.05,.25,1),
+                                transform .62s cubic-bezier(.5,.02,.2,1),
+                                filter .45s ease; }
+  .stage.active-left  .m-left  { z-index:4; }
+  .stage.active-right .m-right { z-index:4; }
+
+  .m-bg, .m-label, .m-hero, .m-titleimg, .m-hero-pos {
+    position:absolute; inset:0; width:100%; height:100%;
+    object-fit:fill; display:block; pointer-events:none;
+    user-select:none; -webkit-user-drag:none;
+  }
+  /* labels (0% / 酒鬼) — scale in with their side */
+  .m-label { z-index:3; transition:transform .5s cubic-bezier(.34,1.25,.45,1); }
+  .m-label-left  { transform:scale(var(--fam-scale,1)); transform-origin:40% 16%; }
+  .m-label-right { transform:scale(var(--adu-scale,1)); transform-origin:58% 16%; }
+
+  /* hero figures — the wrapper holds the POSITION. Idle = the exact static-cover
+     spot (body partly off-frame, as in the original art). Hovering that side
+     slides the figure to its native full-frame position, revealing the complete
+     body. The <img> only carries filter so position + dim never fight. */
+  .m-hero-pos  { z-index:2; transition: transform .6s cubic-bezier(.34,1.12,.4,1); }
+  .m-pos-left  { transform: translate(-10.47%, 10.94%); }  /* cat: −143px, +84px → cover crop */
+  .m-pos-right { transform: translate(8.27%, -2.21%); }    /* leo: +113px, −17px → cover crop */
+  .stage.active-left  .m-pos-left  { transform: translate(0%, 0%); }  /* reveal full body */
+  .stage.active-right .m-pos-right { transform: translate(0%, 0%); }
+  .m-hero { transition: filter .45s ease; }
+
+  /* tear: the two halves part from the centre, revealing the cover */
+  .stage.tearing .m-left,  .stage.revealed .m-left  { transform:translateX(-105%) rotate(-2deg); }
+  .stage.tearing .m-right, .stage.revealed .m-right { transform:translateX(105%) rotate(2deg); }
+
+  /* mobile attractor on the hero figures */
+  @keyframes mwob  { 0%,55%,100%{ transform:rotate(0) scale(1) } 12%{ transform:rotate(-2.6deg) scale(1.04) } 32%{ transform:rotate(2.6deg) scale(1.03) } }
+  @keyframes mbrea { 0%,55%,100%{ transform:scale(1) } 25%{ transform:scale(1.06) } }
+  @keyframes mglo  { 0%,55%,100%{ filter:drop-shadow(0 0 0 rgba(0,0,0,0)) } 25%{ filter:drop-shadow(0 8px 14px rgba(0,0,0,.32)) } }
+  .stage.touch.hint-wobble  .m-hero-left  { animation:mwob var(--hint-dur) ease-in-out infinite; }
+  .stage.touch.hint-wobble  .m-hero-right { animation:mwob var(--hint-dur) ease-in-out infinite; animation-delay:calc(var(--hint-dur)/2); }
+  .stage.touch.hint-breathe .m-hero-left  { animation:mbrea var(--hint-dur) ease-in-out infinite; }
+  .stage.touch.hint-breathe .m-hero-right { animation:mbrea var(--hint-dur) ease-in-out infinite; animation-delay:calc(var(--hint-dur)/2); }
+  .stage.touch.hint-glow    .m-hero       { animation:mglo var(--hint-dur) ease-in-out infinite; }
+  .stage.tearing .m-hero, .stage.revealed .m-hero { animation:none !important; }
+
+  /* ===== cursor tooltip ===== */
+  .tooltip {
+    position:fixed; z-index:30; pointer-events:none; left:0; top:0;
+    transform:translate(-50%, calc(-100% - 18px));
+    background:#1c1c1c; color:#fff; padding:9px 15px; border-radius:999px;
+    font-size:14px; font-weight:700; white-space:nowrap;
+    opacity:0; transition:opacity .18s ease;
+    box-shadow:0 6px 18px rgba(0,0,0,.28);
+  }
+  .tooltip.show { opacity:1; }
+  .tooltip::after {
+    content:""; position:absolute; left:50%; bottom:-6px; transform:translateX(-50%);
+    border:7px solid transparent; border-top-color:#1c1c1c; border-bottom:0;
+  }
+  .tooltip .arrow { color:#F3DC3E; margin-left:6px; }
+
+  /* ===== back button ===== */
+  .backbtn {
+    position:fixed; z-index:31; left:22px; top:22px;
+    display:flex; align-items:center; gap:8px;
+    background:rgba(28,28,28,.9); color:#fff; border:0; cursor:pointer;
+    padding:11px 18px 11px 14px; border-radius:999px; font-family:inherit;
+    font-weight:700; font-size:15px; backdrop-filter:blur(4px);
+    opacity:0; transform:translateY(-8px); pointer-events:none;
+    box-shadow:0 6px 18px rgba(0,0,0,.25);
+  }
+  .backbtn.show { opacity:1; transform:translateY(0); pointer-events:auto; }
+  .backbtn:hover { background:#000; }
+
+  /* ===== mobile hint animations ===== */
+  @keyframes wob   { 0%,55%,100%{ transform:translate(-50%,-50%) rotate(0) scale(var(--mob,1)) } 12%{ transform:translate(-50%,-50%) rotate(-2.4deg) scale(calc(var(--mob,1) * 1.03)) } 32%{ transform:translate(-50%,-50%) rotate(2.4deg) scale(calc(var(--mob,1) * 1.02)) } }
+  @keyframes brea  { 0%,55%,100%{ transform:translate(-50%,-50%) scale(var(--mob,1)) } 25%{ transform:translate(-50%,-50%) scale(calc(var(--mob,1) * 1.07)) } }
+  @keyframes glo   { 0%,55%,100%{ filter:drop-shadow(0 0 0 rgba(0,0,0,0)) } 25%{ filter:drop-shadow(0 6px 12px rgba(0,0,0,.3)) } }
+
+  .stage.touch.hint-wobble .family-content .sprite.hero { animation:wob var(--hint-dur) ease-in-out infinite; }
+  .stage.touch.hint-wobble .kraft-layer .sprite.hero { animation:wob var(--hint-dur) ease-in-out infinite; animation-delay:calc(var(--hint-dur) / 2); }
+  .stage.touch.hint-breathe .family-content .sprite.hero { animation:brea var(--hint-dur) ease-in-out infinite; }
+  .stage.touch.hint-breathe .kraft-layer .sprite.hero { animation:brea var(--hint-dur) ease-in-out infinite; animation-delay:calc(var(--hint-dur) / 2); }
+  .stage.touch.hint-glow .family-content .sprite.hero { animation:glo var(--hint-dur) ease-in-out infinite; }
+  .stage.touch.hint-glow .kraft-layer .sprite.hero { animation:glo var(--hint-dur) ease-in-out infinite; animation-delay:calc(var(--hint-dur) / 2); }
+  .stage.tearing .sprite.hero, .stage.revealed .sprite.hero { animation:none !important; }
+
+  /* mobile tap pill */
+  .tap-pill {
+    position:absolute; top:27%; z-index:7;
+    transform:translate(-50%,-50%);
+    background:rgba(28,28,28,.4); color:#fff; padding:4px 10px; border-radius:999px;
+    font-size:11px; font-weight:600; letter-spacing:.02em; white-space:nowrap; pointer-events:none;
+    backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px);
+    box-shadow:0 2px 6px rgba(0,0,0,.14);
+  }
+  .tap-pill .arrow { color:#F3DC3E; margin-left:3px; }
+  .stage.tearing .tap-pill, .stage.revealed .tap-pill { opacity:0; }
+
+  /* ===================================================================
+     SCROLL CUE  +  RIGHT-SIDE PROGRESS RAIL
+     =================================================================== */
+  .hero-cues { display:flex; flex-direction:column; align-items:center; gap:15px; margin-top:24px; }
+  .click-hint {
+    display:inline-flex; align-items:center; gap:9px;
+    color:#33302a; font-weight:800; font-size:clamp(14px,1.45vw,17px); letter-spacing:.02em;
+    user-select:none; white-space:nowrap;
+  }
+  .click-hint .up {
+    width:9px; height:9px; display:inline-block;
+    border-top:3px solid var(--ink); border-left:3px solid var(--ink);
+    transform:rotate(45deg);
+  }
+  .scroll-cue {
+    display:flex; flex-direction:column; align-items:center; gap:9px;
+    margin:0 auto; color:var(--muted); font-weight:700; font-size:14px;
+    letter-spacing:.04em; user-select:none; white-space:nowrap;
+    transition:opacity .4s ease;
+  }
+  .scroll-cue .chev {
+    width:13px; height:13px;
+    border-right:3px solid #b8ab90; border-bottom:3px solid #b8ab90;
+    transform:rotate(45deg);
+    animation:bob 1.7s ease-in-out infinite;
+  }
+  @keyframes bob { 0%,100%{ transform:rotate(45deg) translate(0,0) } 50%{ transform:rotate(45deg) translate(4px,4px) } }
+
+  .scroll-rail {
+    position:fixed; top:0; right:0; height:100vh; width:48px; z-index:20;
+    display:flex; align-items:center; justify-content:center; pointer-events:none;
+  }
+  .scroll-rail .track {
+    position:relative; width:4px; height:58vh;
+    border-radius:99px; background:rgba(70,52,24,.16);
+  }
+  .scroll-rail .thumb {
+    position:absolute; left:50%; transform:translateX(-50%);
+    top:calc((100% - 52px) * var(--sp,0));
+    width:9px; height:52px; border-radius:99px; background:var(--ink);
+    transition:top .08s linear;
+  }
+  .rail-hint {
+    position:absolute; bottom:7vh; writing-mode:vertical-rl;
+    font-size:11px; font-weight:800; letter-spacing:.28em; color:var(--muted);
+    transition:opacity .4s ease;
+  }
+  .rail-hint.gone { opacity:0; }
+
+  /* ===================================================================
+     SECTIONS  — theme menu + series intro
+     =================================================================== */
+  .section-wrap { width:min(92vw, 1080px); margin:0 auto; }
+
+  .eyebrow {
+    display:inline-block; font-size:13px; font-weight:900; letter-spacing:.12em;
+    color:var(--ink); background:var(--yellow); padding:6px 13px; border-radius:3px;
+    white-space:nowrap;
+  }
+
+  /* —— 主題課程選單：色塊 + 文字（呼應「零基礎用…」標語條）—— */
+  .menu-block { margin-top:34px; }
+  .menu-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:0 2px 16px; }
+  .menu-hint { color:var(--muted); font-size:13px; font-weight:700; letter-spacing:.04em; white-space:nowrap; }
+
+  /* centre-anchored snap carousel — the active course sits in the middle,
+     neighbours peek on both sides; releasing a swipe snaps the nearest
+     course to centre (swipe out from the centre point) */
+  .theme-menu {
+    --cellW: clamp(280px, 32vw, 400px);
+    position:relative;
+    display:flex; gap:16px;
+    overflow-x:auto; overflow-y:hidden;
+    scroll-snap-type:none;
+    -webkit-overflow-scrolling:touch;
+    scroll-behavior:smooth;
+    padding:8px 0 18px;
+    scrollbar-width:none;
+  }
+  .theme-menu::-webkit-scrollbar { display:none; }
+  .menu-spacer { flex:0 0 calc(50% - var(--cellW)/2 - 16px); }
+  .theme-cell {
+    flex:0 0 var(--cellW);
+    scroll-snap-align:center;
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    background:var(--yellow); color:var(--ink);
+    font-weight:900; font-size:clamp(17px,1.6vw,23px); letter-spacing:.02em;
+    padding:22px; border-radius:8px;
+    text-decoration:none; cursor:pointer;
+    box-shadow:0 4px 0 rgba(0,0,0,.12);
+    opacity:.46; transform:scale(.92);
+    transition:transform .3s cubic-bezier(.4,0,.2,1), opacity .3s ease, box-shadow .2s ease, filter .15s ease;
+  }
+  .theme-cell.active { opacity:1; transform:scale(1); box-shadow:0 8px 0 rgba(0,0,0,.16); }
+  .theme-cell:hover { filter:brightness(1.05); }
+  .theme-cell .arrow { font-weight:700; opacity:.55; }
+
+  /* —— 系列課程介紹 —— */
+  .series-intro { margin-top:84px; }
+  .series-intro .eyebrow { margin-bottom:20px; }
+  .intro-title {
+    font-size:clamp(28px,3.7vw,46px); font-weight:900; line-height:1.24;
+    max-width:15em; text-wrap:balance;
+  }
+  /* —— 系列說明階層：大標題（課程名）＞中標題＞小標題＞內文 —— */
+  .intro-bigtitle {
+    font-size:clamp(31px,4.5vw,55px); font-weight:900; line-height:1.12;
+    letter-spacing:.01em; text-wrap:balance; margin-bottom:8px;
+  }
+  .intro-midtitle {
+    font-size:clamp(19px,2.3vw,29px); font-weight:800; line-height:1.4;
+    color:#3a342a; white-space:nowrap; text-wrap:balance;
+  }
+  /* —— 區塊小標（三步驟流程／會學到什麼／要準備什麼）—— */
+  .series-intro .block-head {
+    display:flex; align-items:center; gap:11px;
+    font-size:clamp(19px,2vw,26px); font-weight:900; color:var(--ink);
+    margin:62px 0 22px;
+  }
+  .series-intro .block-head::before {
+    content:""; width:7px; height:1.05em; border-radius:3px;
+    background:var(--yellow); flex:none;
+  }
+  /* —— 會學到什麼：卡片 —— */
+  .learn-list {
+    list-style:none; display:grid; gap:14px;
+    grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+  }
+  .learn-list li {
+    display:flex; flex-direction:column; gap:5px;
+    padding:18px 20px; background:#f4efe4; border-radius:11px;
+    border:1px solid rgba(120,105,75,.16);
+  }
+  .learn-list li strong { font-size:clamp(16px,1.5vw,19px); font-weight:900; color:#2a261f; }
+  .learn-list li span   { font-size:15px; line-height:1.7; color:#5a5444; text-wrap:pretty; }
+  /* —— 要準備什麼：膠囊清單 —— */
+  .prepare-list { list-style:none; display:flex; flex-wrap:wrap; gap:12px; }
+  .prepare-list li {
+    display:flex; align-items:center; gap:9px;
+    padding:12px 20px; background:#fff; border-radius:999px;
+    border:1px solid rgba(120,105,75,.22);
+    font-weight:700; font-size:clamp(14px,1.3vw,16px); color:#3a342a;
+  }
+  .prepare-list li::before { content:""; width:9px; height:9px; border-radius:50%; background:var(--yellow); flex:none; }
+  /* —— 您能帶走什麼：勾選清單 —— */
+  .take-list { list-style:none; display:grid; gap:11px; }
+  .take-list li {
+    position:relative; padding:13px 18px 13px 46px;
+    background:#f4efe4; border:1px solid rgba(120,105,75,.16); border-radius:11px;
+    font-weight:700; font-size:clamp(14px,1.35vw,16px); line-height:1.65; color:#3a342a; text-wrap:pretty;
+  }
+  .take-list li::before {
+    content:"✓"; position:absolute; left:16px; top:13px;
+    color:#1f6b3a; font-weight:900; font-size:16px;
+  }
+  /* —— 課程說明：資訊列 —— */
+  .info-list {
+    border:1px solid rgba(120,105,75,.2); border-radius:12px; overflow:hidden; background:#fbf8f0;
+  }
+  .info-row { display:flex; gap:16px; padding:13px 18px; border-top:1px solid rgba(120,105,75,.14); }
+  .info-row:first-child { border-top:0; }
+  .info-row dt { flex:0 0 128px; font-weight:900; color:#2a261f; font-size:15px; }
+  .info-row dd { flex:1; font-weight:700; color:#4a4438; font-size:15px; line-height:1.6; text-wrap:pretty; }
+  .info-row dd del { color:var(--muted); font-weight:700; margin-right:10px; }
+  .info-row dd strong { font-weight:900; color:var(--ink); background:linear-gradient(transparent 55%, var(--yellow) 55%); padding:0 2px; }
+  .prepare-note { margin-top:13px; font-size:13px; color:var(--muted); }
+  .prepare-subhead {
+    margin:22px 0 13px; font-size:clamp(15px,1.5vw,17px); font-weight:800; color:#6a5f49;
+    display:flex; align-items:center; gap:9px;
+  }
+  .prepare-subhead::before { content:"◆"; font-size:.7em; color:var(--yellow); }
+  /* 舉牌梗圖小牌子（如「快來」）—— 像窗邊雙手抓著的紙板牌 */
+  .sign-placard {
+    position:relative; display:inline-block; vertical-align:middle;
+    margin:0 18px; padding:5px 13px 5px;
+    background:#f7efdc; border:2.5px solid #2a261f; border-radius:3px;
+    font-weight:900; color:#2a261f; letter-spacing:.04em;
+    transform:rotate(-3deg); box-shadow:1.5px 2.5px 0 rgba(0,0,0,.18);
+  }
+  /* 兩隻手抓住紙板左右兩側 */
+  .sign-placard::before, .sign-placard::after {
+    content:""; position:absolute; top:50%; width:15px; height:19px;
+    background:#e7b98c; border:2px solid #2a261f; border-radius:5px;
+    background-image:linear-gradient(180deg, rgba(42,38,31,.4) 0 1.4px, transparent 1.4px 5px);
+    background-size:100% 5px; background-position:0 3px; background-repeat:repeat-y;
+  }
+  .sign-placard::before { left:-11px;  transform:translateY(-50%) rotate(-7deg); }
+  .sign-placard::after  { right:-11px; transform:translateY(-50%) rotate(7deg); }
+  .series-bottom { margin-top:52px; display:flex; flex-direction:column; align-items:flex-start; gap:14px; }
+  .btn-top {
+    display:inline-flex; align-items:center; gap:8px;
+    background:var(--ink); color:#fff; border:0; cursor:pointer;
+    font-family:inherit; font-weight:800; font-size:clamp(14px,1.4vw,16px);
+    padding:13px 26px; border-radius:999px;
+    box-shadow:0 8px 20px rgba(0,0,0,.2);
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .btn-top:hover { transform:translateY(-2px); box-shadow:0 12px 26px rgba(0,0,0,.26); }
+  .series-note { font-size:13px; color:var(--muted); line-height:1.7; text-wrap:pretty; }
+  .intro-body { max-width:840px; }
+  .intro-q {
+    margin-top:24px; font-size:clamp(17px,1.75vw,23px); font-weight:800; line-height:1.7;
+    color:#2a261f; text-wrap:pretty;
+  }
+  .intro-lead {
+    margin-top:18px; font-size:clamp(15px,1.4vw,18px); line-height:1.95;
+    color:#4a4438; max-width:840px; text-wrap:pretty;
+  }
+  .intro-lead strong {
+    font-weight:900;
+    background:linear-gradient(transparent 58%, var(--yellow) 58%);
+  }
+
+  .feature-grid {
+    margin-top:80px; display:grid; grid-template-columns:repeat(3,1fr); gap:26px;
+  }
+  .feature .ph { aspect-ratio:4 / 3; }
+  .feature .feat-art { width:150px; max-width:60%; aspect-ratio:1 / 1; margin:0 auto; display:flex; align-items:center; justify-content:center; }
+  .feature .feat-art img { width:100%; height:100%; object-fit:contain; display:block; }
+  /* meme course: enlarge the three feature figures */
+  .feature-grid.feats-meme .feat-art { width:285px; max-width:94%; }
+  .feature h4 { margin-top:18px; font-size:clamp(18px,1.5vw,21px); font-weight:900; }
+  .feature p  { margin-top:9px; font-size:15px; line-height:1.85; color:#6a6253; text-wrap:pretty; }
+
+  .ph {
+    position:relative;
+    background:#e6dfce;
+    border:1px solid rgba(120,105,75,.2);
+    border-radius:9px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+    color:#a99d83; font-weight:700; font-size:13px; text-align:center; padding:12px;
+  }
+  .ph::before {
+    content:""; width:40px; height:40px; margin-bottom:7px;
+    background:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='40'%20height='40'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23b3a888'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Crect%20x='3'%20y='4'%20width='18'%20height='15'%20rx='2'/%3E%3Ccircle%20cx='8.5'%20cy='9'%20r='1.5'/%3E%3Cpath%20d='M21%2015l-5-4.5-9%208'/%3E%3C/svg%3E") center/contain no-repeat;
+  }
+
+  .signup-band { margin-top:64px; }
+  .signup-band .eyebrow { margin-bottom:16px; }
+  .signup-ph {
+    min-height:230px; padding:34px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px;
+    text-align:center;
+  }
+  .signup-ph .cap { color:#9a8f78; font-weight:700; font-size:14px; }
+  .btn-signup {
+    background:var(--ink); color:#fff; font-weight:900; font-size:clamp(17px,1.7vw,21px);
+    padding:16px 48px; border-radius:999px; text-decoration:none; white-space:nowrap;
+    box-shadow:0 10px 24px rgba(0,0,0,.24);
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .btn-signup:hover { transform:translateY(-2px); box-shadow:0 14px 30px rgba(0,0,0,.28); }
+
+  /* —— 細分班別專屬段落（主要說明之外，多出的一段文字＋圖片）—— */
+  .detail-extra { margin-top:58px; padding-top:46px; border-top:2px dashed rgba(120,105,75,.32); }
+  .detail-extra .eyebrow { margin-bottom:18px; }
+  .detail-extra .intro-lead { margin-top:0; max-width:100%; }
+  .extra-imgs { margin-top:26px; display:grid; grid-template-columns:repeat(2,1fr); gap:22px; }
+  .extra-ph { aspect-ratio:16 / 10; }
+  .extra-shot { margin:0; border-radius:10px; overflow:hidden; border:1px solid rgba(120,105,75,.2);
+    background:#efe9dc; box-shadow:0 10px 26px -18px rgba(70,52,24,.5); }
+  .extra-shot.wide { grid-column:1 / -1; }
+  .extra-shot img { width:100%; display:block; }
+  .extra-shot figcaption { padding:11px 14px; font-size:13px; font-weight:800; color:#6a6253; background:#f4efe4; }
+
+  /* —— 親子班互動報名圖（基底＋變身怪獸＋紅鈕報名）—— */
+  .signup-art { position:relative; width:100%; aspect-ratio:16 / 9; border-radius:12px; overflow:hidden;
+    background:#faf6ef; border:1px solid rgba(120,105,75,.18);
+    box-shadow:0 16px 40px -24px rgba(70,52,24,.5); }
+  .signup-art img { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; pointer-events:none; }
+  .sa-base { z-index:1; }
+  .sa-monster { z-index:2; opacity:0; transform:scale(.5) translateY(5%); transform-origin:76% 62%;
+    transition:opacity .45s ease, transform .65s cubic-bezier(.34,1.55,.5,1); }
+  .signup-art.go .sa-monster { opacity:1; transform:scale(1) translateY(0);
+    transition:opacity .45s ease .36s, transform .66s cubic-bezier(.34,1.55,.5,1) .36s; }
+  .sa-cloudq { z-index:3; transform-origin:76% 64%;
+    transition:opacity .42s ease, transform .5s cubic-bezier(.5,0,.75,.35); }
+  .signup-art.go .sa-cloudq { opacity:0; transform:scale(.4) translateY(4%); }
+  .sa-btn { z-index:4; transform-origin:78% 19%; animation:saPulse 1.8s ease-in-out infinite; }
+  .signup-art.go .sa-btn { animation:none; transform:scale(.93); transition:transform .16s ease; }
+  @keyframes saPulse { 0%,100%{ transform:scale(1) } 50%{ transform:scale(1.035) } }
+  .sa-hotspot { position:absolute; z-index:5; border:0; background:transparent; cursor:pointer;
+    font:0/0 a; color:transparent; padding:0; -webkit-tap-highlight-color:transparent; }
+  .sa-hotspot:focus-visible { outline:3px solid var(--yellow); outline-offset:2px; border-radius:999px; }
+  @media (prefers-reduced-motion: reduce) { .sa-btn { animation:none; } .sa-monster, .sa-cloudq { transition:opacity .3s ease; transform:none; } }
+
+  /* ===================================================================
+     MEME 互動報名圖 (.msa) — 全畫布疊層 + 連動敲擊動畫
+     =================================================================== */
+  .msa {
+    position:relative; width:100%; aspect-ratio:16 / 9; border-radius:12px; overflow:hidden;
+    background:#faf6ef; border:1px solid rgba(120,105,75,.18);
+    box-shadow:0 16px 40px -24px rgba(70,52,24,.5); perspective:1300px;
+  }
+  .msa img { position:absolute; inset:0; width:100%; height:100%; object-fit:contain;
+    pointer-events:none; user-select:none; -webkit-user-drag:none; }
+
+  .msa-label-r { z-index:2; }
+  .msa-label-l { z-index:2; transform-origin:9% 15%; transition:transform .2s cubic-bezier(.34,1.5,.5,1); }
+  .msa.go .msa-label-l { transform:rotate(-11deg); }
+  .msa-black, .msa-color { z-index:2; }
+  .msa-btn  { z-index:3; transform-origin:50% 42%; animation:msaPulse 1.8s ease-in-out infinite; }
+  .msa-dog-grp { position:absolute; inset:0; z-index:5; }
+  .msa-dog-grp img { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; }
+  .msa-bat { transform-origin:26% 87%; }
+  .msa-bonk { z-index:6; transform-origin:60% 40%; opacity:0; transform:scale(.4); }
+  .msa-color { opacity:0; transform-origin:82% 57%; }
+
+  /* —— 按下後的連動動畫：狗+棒一起跳、棒繞握把揮擊、肌肉狗繞腰轉兩圈 —— */
+  .msa.go .msa-dog-grp { animation:msaJump .6s cubic-bezier(.3,.85,.35,1) both; }
+  .msa.go .msa-bat     { animation:msaSwing .6s cubic-bezier(.4,.7,.3,1) both; }
+  .msa.go .msa-btn     { animation:msaHit .5s ease .24s both; }
+  .msa.go .msa-bonk    { animation:msaBonk .55s cubic-bezier(.34,1.6,.5,1) .24s both; }
+  .msa-black { transition:opacity .25s ease .26s; }
+  .msa.go .msa-black { opacity:0; }
+  .msa.go .msa-color { opacity:1; transition:opacity .2s ease .26s; animation:msaSpin 1.1s cubic-bezier(.5,.03,.3,1) .26s both; }
+
+  .msa-hotspot { position:absolute; z-index:9; left:42%; top:15%; width:16%; height:70%;
+    border:0; background:transparent; cursor:pointer; font:0/0 a; color:transparent;
+    padding:0; -webkit-tap-highlight-color:transparent; }
+  .msa-hotspot:focus-visible { outline:3px solid var(--yellow); outline-offset:2px; border-radius:999px; }
+
+  @keyframes msaPulse { 0%,100%{ transform:scale(1) } 50%{ transform:scale(1.04) } }
+  @keyframes msaJump {
+    0%   { transform:translateY(0) scaleY(1); }
+    12%  { transform:translateY(8px) scaleY(.92); }
+    40%  { transform:translateY(-64px) scaleY(1.05); }
+    52%  { transform:translateY(-50px) scaleY(1); }
+    78%  { transform:translateY(-6px) scaleY(.98); }
+    100% { transform:translateY(0) scaleY(1); }
+  }
+  @keyframes msaSwing {
+    0%   { transform:rotate(0deg); }
+    14%  { transform:rotate(-20deg); }
+    44%  { transform:rotate(58deg); }
+    56%  { transform:rotate(46deg); }
+    72%  { transform:rotate(50deg); }
+    100% { transform:rotate(0deg); }
+  }
+  @keyframes msaHit {
+    0%   { transform:scale(1) translate(0,0); }
+    14%  { transform:scale(1.05) translate(4px,5px); }
+    32%  { transform:scale(1.02) translate(-5px,0); }
+    50%  { transform:translate(5px,0); }
+    68%  { transform:translate(-3px,0); }
+    100% { transform:scale(1) translate(0,0); }
+  }
+  @keyframes msaBonk { 0%{ opacity:0; transform:scale(.4) rotate(-8deg) } 60%{ opacity:1; transform:scale(1.15) rotate(4deg) } 100%{ opacity:1; transform:scale(1) rotate(0) } }
+  @keyframes msaSpin { 0%{ transform:rotateY(0) } 100%{ transform:rotateY(720deg) } }
+  @media (prefers-reduced-motion: reduce) {
+    .msa-btn { animation:none; }
+    .msa.go .msa-dog-grp, .msa.go .msa-bat { animation:none; }
+    .msa.go .msa-color { animation:none; }
+    .msa.go .msa-bonk  { animation:none; opacity:1; transform:none; }
+  }
+
+  /* ===================================================================
+     MOBILE content (html.mobv) — capped content column, native type scale
+     =================================================================== */
+  /* use the same tidy custom rail as desktop (the native scrollbar is hidden
+     below) — tuned narrower and hugging the edge for phones; its vertical
+     label is dropped since the rail itself is the cue */
+  html.mobv .scroll-rail { display:flex; width:26px; }
+  html.mobv .scroll-rail .track { height:40vh; width:3px; }
+  html.mobv .scroll-rail .thumb { width:7px; height:40px; top:calc((100% - 40px) * var(--sp,0)); }
+  html.mobv .rail-hint { display:none; }
+  /* hide the native scrollbar on mobile — the custom rail is the indicator */
+  html.mobv { scrollbar-width:none; }
+  html.mobv body { scrollbar-width:none; }
+  html.mobv::-webkit-scrollbar, html.mobv body::-webkit-scrollbar { width:0; height:0; display:none; }
+  html.mobv .section-wrap { width:auto; max-width:520px; margin:0 auto; padding:0 18px; }
+
+  /* hero cues: these are just hints — keep them small and quiet so they
+     don't compete with the cover. Names stay legible but un-highlighted. */
+  html.mobv .hero-cues { margin-top:11px; gap:4px; }
+  html.mobv .click-hint { font-size:11.5px; font-weight:600; color:#9a8f78; text-align:center; flex-wrap:wrap; justify-content:center; gap:5px; letter-spacing:.01em; }
+  html.mobv .click-hint .up { display:none; }
+  /* always break the "以瞭解…" clause onto its own line (comma trails line 1),
+     so short-label courses (塗鴉) wrap the same clean way as 迷因 */
+  html.mobv .click-hint .hint-tail { flex-basis:100%; }
+  html.mobv .ch-name { font-weight:800; color:#6a5f49; box-shadow:none; padding:0; }
+  .ch-name { font-weight:900; color:var(--ink); box-shadow:inset 0 -7px 0 rgba(243,220,62,.55); padding:0 1px; }
+  html.mobv .scroll-cue { display:none; }   /* redundant — the side rail is the scroll hint */
+
+  /* course carousel — break out of the section-wrap padding so the scroll
+     region spans the full width (neighbours peek to the screen edge), and
+     keep the cards / type compact */
+  html.mobv .menu-block { margin-top:48px; }
+  html.mobv .menu-head { align-items:flex-end; margin-bottom:14px; }
+  html.mobv .menu-hint { font-size:11.5px; font-weight:700; color:#a89e88; letter-spacing:.02em; }
+  html.mobv .theme-menu {
+    --cellW:66%; gap:10px;
+    margin-inline:-18px; padding:6px 0 16px;
+    scroll-padding-inline:0;
+  }
+  html.mobv .menu-spacer { flex:0 0 calc(50% - var(--cellW)/2 - 10px); }
+  html.mobv .theme-cell { font-size:15px; padding:14px 14px; box-shadow:0 4px 0 rgba(0,0,0,.12); }
+
+  /* —— type scale —— */
+  html.mobv .series-intro { margin-top:48px; }
+  html.mobv .series-intro .eyebrow { margin-bottom:16px; }
+  html.mobv .intro-bigtitle { font-size:25px; line-height:1.22; margin-bottom:10px; }
+
+  /* =====================================================================
+     MOBILE hierarchy polish — reserve solid yellow for interactive things
+     (carousel cards, signup CTA, hero bar). Section eyebrows become a quiet
+     "kicker": a small letterspaced label preceded by a short yellow tick,
+     so stacked sections read as a calm hierarchy, not a wall of buttons.
+     ===================================================================== */
+  html.mobv .eyebrow {
+    display:inline-flex; align-items:center; gap:9px;
+    background:transparent; padding:0; border-radius:0;
+    font-size:12.5px; font-weight:900; letter-spacing:.16em; color:#463f33;
+  }
+  html.mobv .eyebrow::before {
+    content:""; width:5px; height:1.15em; border-radius:2px;
+    background:var(--yellow); flex:none;
+  }
+  html.mobv .intro-midtitle { font-size:17px; line-height:1.5; white-space:normal; margin:0; }
+  html.mobv .intro-q { font-size:16px; line-height:1.7; margin-top:18px; }
+  html.mobv .intro-lead { font-size:15.5px; line-height:1.85; margin-top:12px; }
+  html.mobv .series-intro .block-head { font-size:19px; margin:36px 0 16px; }
+  html.mobv .prepare-subhead { font-size:15px; margin:22px 0 12px; }
+  html.mobv .prepare-note { font-size:12.5px; }
+  html.mobv .series-note { font-size:12.5px; }
+
+  /* —— three-step feature: tidy thumbnail + text cards —— */
+  html.mobv .feature-grid { grid-template-columns:1fr; gap:12px; margin-top:0; }
+  html.mobv .feature {
+    display:grid; grid-template-columns:72px 1fr; column-gap:15px; row-gap:4px; align-items:center;
+    background:#f4efe4; border:1px solid rgba(120,105,75,.16); border-radius:14px; padding:14px;
+  }
+  html.mobv .feature .ph { grid-column:1; grid-row:1 / 3; width:72px; height:72px; aspect-ratio:auto; align-self:center; font-size:0; padding:0; border-radius:10px; }
+  html.mobv .feature .feat-art { grid-column:1; grid-row:1 / 3; width:72px; height:72px; max-width:72px; aspect-ratio:auto; align-self:center; margin:0; }
+  html.mobv .feature-grid.feats-meme .feat-art { width:72px; max-width:72px; }
+  html.mobv .feature .ph::before { margin-bottom:0; width:30px; height:30px; }
+  html.mobv .feature h4 { grid-column:2; grid-row:1; align-self:end; margin:0; font-size:16.5px; }
+  html.mobv .feature p  { grid-column:2; grid-row:2; align-self:start; margin:1px 0 0; font-size:13.5px; line-height:1.7; }
+
+  /* —— meme course on phones: stack a LARGE image above the text.
+        The detailed meme figures are illegible at 72px, so for this course
+        only we drop the thumbnail-left grid and go full-width image on top. —— */
+  html.mobv .feature-grid.feats-meme .feature {
+    display:block; padding:14px 14px 18px;
+  }
+  html.mobv .feature-grid.feats-meme .feat-art {
+    width:100%; max-width:100%; height:auto; aspect-ratio:auto;
+    margin:0 0 12px; display:block;
+  }
+  html.mobv .feature-grid.feats-meme .feature h4 { margin:0; font-size:17px; }
+  html.mobv .feature-grid.feats-meme .feature p  { margin:5px 0 0; font-size:14px; }
+
+  /* —— back button on phones: keep it as a quiet, semi-transparent pill so it
+        doesn't cover the cover art. It only solidifies while being pressed. —— */
+  html.mobv .backbtn { left:14px; top:14px; padding:9px 15px 9px 12px; font-size:14px; }
+  html.mobv .backbtn.show { opacity:.4; }
+  html.mobv .backbtn.show:active { opacity:1; background:#000; }
+
+  /* —— lists —— */
+  html.mobv .learn-list { grid-template-columns:1fr; gap:12px; }
+  html.mobv .learn-list li strong { font-size:16px; }
+  html.mobv .prepare-list { gap:9px; }
+  html.mobv .prepare-list li { padding:11px 16px; font-size:14px; }
+  html.mobv .take-list li { font-size:14.5px; padding:12px 16px 12px 42px; }
+  html.mobv .info-row { flex-direction:column; gap:3px; padding:13px 16px; }
+  html.mobv .info-row dt { flex-basis:auto; font-size:14px; }
+  html.mobv .info-row dd { font-size:14.5px; }
+
+  /* —— signup / detail / footer —— */
+  html.mobv .signup-band { margin-top:48px; }
+  html.mobv .signup-ph { min-height:0; padding:24px 18px; gap:15px; }
+  html.mobv .btn-signup { font-size:18px; padding:15px 36px; }
+  html.mobv .btn-top { font-size:14px; }
+  html.mobv .detail-extra { margin-top:48px; padding-top:32px; }
+  html.mobv .extra-imgs { grid-template-columns:1fr; gap:14px; }
+  html.mobv .series-bottom { margin-top:48px; }
+
+  /* ===== forced mobile preview (#mobpv) — 390px column on a dark surround ===== */
+  html.pv { background:#34322c; }
+  html.pv body { width:390px; min-height:100vh; margin:0 auto; overflow-x:hidden; }
+
+  /* ===== loading ===== */
+  .loading { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:#e9e4da; z-index:50; color:#9a9183; font-weight:700; transition:opacity .4s ease; }
+  .loading.hide { opacity:0; pointer-events:none; }
+</style>
+<script>
+  /* Toggle the mobile layout class on <html>. Driven by aspect-ratio
+     (real devices) OR the #mobpv hash (forced preview at 390px). */
+  (function () {
+    function update() {
+      var narrow = window.matchMedia("(max-aspect-ratio: 13/10)").matches;
+      var pv = location.hash.indexOf("mobpv") >= 0;
+      var de = document.documentElement;
+      de.classList.toggle("mobv", narrow || pv);
+      de.classList.toggle("pv", pv);
+    }
+    update();
+    window.addEventListener("resize", update);
+    window.addEventListener("orientationchange", update);
+    window.addEventListener("hashchange", update);
+  })();
+</script>
+</head>
+<body>
+  <div id="root"></div>
+  <div class="loading" id="loading">載入素材中…</div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+  <script type="text/babel" src="doodle-hero.jsx?v=2"></script>
+  <script type="text/babel" src="meme-hero.jsx?v=4"></script>
+  <script type="text/babel" src="app.jsx?v=68"></script>
+</body>
+</html>
