@@ -293,6 +293,9 @@ fbq('track','PageView');
     var LABEL = { family: "親子班", adult: "成人班", good: "健康乖寶寶班", drunk: "酒鬼班" };
     var SERIES = { family: "塗鴉變 3D 模型？！", adult: "塗鴉變 3D 模型？！", good: "迷因變成 3D 模型？！", drunk: "迷因變成 3D 模型？！" };
 
+    // ── 線上金流開關：暫時關閉刷卡，改「填表報名 → Email 聯繫繳費」。改回 true 即恢復 Recur 刷卡。
+    var PAYMENT_ENABLED = false;
+
     // ── Recur 金流：各班別對應的產品 ID（在 Recur 後台建立）──────────────
     var RECUR_PK = "pk_live_971e9a83e1269b1166ecf56371449f2756812dc93bc3e66962257303f85c0f06";
     var PRODUCT = {
@@ -514,8 +517,16 @@ fbq('track','PageView');
       document.getElementById("form-side").style.display = "none";
       var d = document.getElementById("done");
       d.classList.add("show");
-      document.getElementById("done-msg").textContent =
-        "付款完成，已為您保留「" + (LABEL[courseSel.value]||"") + "」" + qty + " 個名額（" + whenText() + "）。收據與上課細節將以 Email 寄出。";
+      var h3 = d.querySelector("h3");
+      if (PAYMENT_ENABLED) {
+        if (h3) h3.textContent = "付款完成！";
+        document.getElementById("done-msg").textContent =
+          "付款完成，已為您保留「" + (LABEL[courseSel.value]||"") + "」" + qty + " 個名額（" + whenText() + "）。收據與上課細節將以 Email 寄出。";
+      } else {
+        if (h3) h3.textContent = "報名已送出！";
+        document.getElementById("done-msg").textContent =
+          "已收到您報名「" + (LABEL[courseSel.value]||"") + "」" + qty + " 個名額（" + whenText() + "）。我們會以 Email 與您聯繫繳費方式與上課細節。";
+      }
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
@@ -571,6 +582,27 @@ fbq('track','PageView');
       };
       booking.booking_id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
                          : (String(Date.now()) + Math.random().toString(36).slice(2));
+
+      // ── 金流暫關：只做報名（寫進試算表 + Email 聯繫繳費），不開 Recur 刷卡 ──
+      if (!PAYMENT_ENABLED) {
+        try {
+          gtag('event','generate_lead',{ currency:'TWD', value:amount,
+            items:[{ item_id:c, item_name:itemName, price:unitPrice, quantity:qty }] });
+          fbq('track','Lead',{ content_name:itemName, value:amount, currency:'TWD' });
+        } catch(_){}
+        var ot0 = payBtn.textContent;
+        payBtn.disabled = true; payBtn.textContent = "送出中…";
+        recordBooking(booking).then(function(res){
+          if (res && res.full) {
+            payBtn.disabled = false; payBtn.textContent = ot0;
+            applySlotFull();
+            alert("很抱歉，這個時段剛好額滿了，請改選其他時段。");
+            return;
+          }
+          showDone();
+        });
+        return;
+      }
 
       var pid = PRODUCT[c];
       if (!pid){ alert("此班別暫時無法線上付款，請來信 " + OWNER_EMAIL + " 報名。"); return; }
@@ -635,6 +667,19 @@ fbq('track','PageView');
         alert("付款系統載入失敗，請稍後再試，或直接來信 " + OWNER_EMAIL + " 報名。");
       });
     });
+
+    // 金流暫關：把「付款」相關文案改成「報名」
+    if (!PAYMENT_ENABLED) {
+      var _pay = document.getElementById("pay");
+      if (_pay) _pay.textContent = "送出報名 →";
+      [].forEach.call(document.querySelectorAll(".safe-note"), function(n){
+        n.textContent = "送出後名額將為您保留，我們會以 Email 與您聯繫繳費方式與上課資訊。";
+      });
+      [].forEach.call(document.querySelectorAll(".hint-price"), function(n){
+        if (n.textContent.indexOf("刷卡") >= 0 || n.textContent.indexOf("付款") >= 0)
+          n.textContent = "※ 線上報名，付款方式將於報名後以 Email 通知。";
+      });
+    }
 
     applySlotFull();   // 初始即套用（晚上班灰化等狀態）
     render();
