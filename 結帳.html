@@ -569,6 +569,8 @@ fbq('track','PageView');
         phone: phoneV,
         email: emailV
       };
+      booking.booking_id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+                         : (String(Date.now()) + Math.random().toString(36).slice(2));
 
       var pid = PRODUCT[c];
       if (!pid){ alert("此班別暫時無法線上付款，請來信 " + OWNER_EMAIL + " 報名。"); return; }
@@ -581,6 +583,11 @@ fbq('track','PageView');
           content_type:'product', value:amount, currency:'TWD', num_items:qty });
       } catch(_){}
 
+      // 點選付款 → 先記一筆「待付款」（lead）；付款完成後會更新為「已付款」。不等結果以免拖慢開窗。
+      booking.event = "initiate";
+      booking.status = "待付款";
+      recordBooking(booking);
+
       var origText = payBtn.textContent;
       payBtn.disabled = true;
       payBtn.textContent = "開啟付款…";
@@ -591,17 +598,27 @@ fbq('track','PageView');
           customerEmail: emailV,
           customerName: nameV,
           mode: 'modal',
-          onSuccess: function(result){
+          // ⚠️ Recur 的 onSuccess 是「結帳視窗建立成功」就觸發（此時還沒付款），不可拿來顯示完成。
+          // 真正付款完成是 onPaymentComplete（status=SUCCEEDED/ACTIVE）。
+          onPaymentComplete: function(res){
+            var st = res && res.status;
+            if (st !== "SUCCEEDED" && st !== "ACTIVE" && st !== "PAID") {
+              payBtn.disabled = false; payBtn.textContent = origText;
+              alert("付款狀態異常（" + (st || "未知") + "）。若已扣款請來信 " + OWNER_EMAIL + " 確認。");
+              return;
+            }
             try {
-              gtag('event','purchase',{ transaction_id:(result&&result.orderId)||'',
+              gtag('event','purchase',{ transaction_id:(res&&res.id)||'',
                 currency:'TWD', value:amount,
                 items:[{ item_id:c, item_name:itemName, price:unitPrice, quantity:qty }] });
               fbq('track','Purchase',{ content_ids:[c], content_name:itemName,
                 content_type:'product', value:amount, currency:'TWD', num_items:qty });
             } catch(_){}
-            booking.order_id = (result && result.orderId) || "";
+            booking.event = "paid";
+            booking.status = "已付款";
+            booking.order_id = (res && res.id) || "";
             booking.paid = true;
-            recordBooking(booking).then(function(){ showDone(); });
+            recordBooking(booking).then(function(){ showDone(); });   // 付款完成才顯示「報名成功」
           },
           onError: function(err){
             payBtn.disabled = false; payBtn.textContent = origText;
