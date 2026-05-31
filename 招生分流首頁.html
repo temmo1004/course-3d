@@ -476,6 +476,16 @@
     transition:transform .15s ease, box-shadow .15s ease;
   }
   .btn-top:hover { transform:translateY(-2px); box-shadow:0 12px 26px rgba(0,0,0,.26); }
+  .series-btn-row { display:flex; flex-wrap:wrap; align-items:center; gap:12px; }
+  .btn-buy {
+    display:inline-flex; align-items:center; gap:8px;
+    background:var(--yellow); color:var(--ink); border:0; cursor:pointer;
+    font-family:inherit; font-weight:900; font-size:clamp(14px,1.4vw,16px);
+    padding:13px 28px; border-radius:999px; text-decoration:none; white-space:nowrap;
+    box-shadow:0 8px 20px -6px rgba(70,52,24,.45);
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .btn-buy:hover { transform:translateY(-2px); box-shadow:0 12px 26px rgba(70,52,24,.4); }
   .series-note { font-size:13px; color:var(--muted); line-height:1.7; text-wrap:pretty; }
   .intro-body { max-width:840px; }
   .intro-q {
@@ -751,6 +761,7 @@
   html.mobv .signup-ph { min-height:0; padding:24px 18px; gap:15px; }
   html.mobv .btn-signup { font-size:18px; padding:15px 36px; }
   html.mobv .btn-top { font-size:14px; }
+  html.mobv .btn-buy { font-size:14px; }
   html.mobv .detail-extra { margin-top:48px; padding-top:32px; }
   html.mobv .extra-imgs { grid-template-columns:1fr; gap:14px; }
   html.mobv .series-bottom { margin-top:48px; }

@@ -391,8 +391,11 @@ function CourseIntro({ extra, courseName }) {
           <p className="prepare-note">{SERIES_MAIN.prepareNote}</p>
 
           <div className="series-bottom">
-            <button type="button" className="btn-top"
-                    onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>↑ 回到上方</button>
+            <div className="series-btn-row">
+              <button type="button" className="btn-top"
+                      onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>↑ 回到上方</button>
+              <a className="btn-buy" href="結帳.html">不想多看，直接下單 →</a>
+            </div>
             <p className="series-note">{SERIES_MAIN.footer}</p>
           </div>
         </React.Fragment>
