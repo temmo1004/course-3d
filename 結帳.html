@@ -196,8 +196,8 @@
       <div style="margin-top:40px"><span class="eyebrow">上課時間</span></div>
       <div class="field">
         <label for="date">上課日期</label>
-        <input id="date" type="date">
-        <p class="note">選一個您方便的日期，實際開課以達標並另行 email 確認為準。</p>
+        <input id="date" type="date" min="2026-06-01" max="2026-06-30">
+        <p class="note">報名期間 6/1–6/30：6/1–6/11 僅開下午班，6/12 起加開晚上班。實際開課以達標並另行 email 確認為準。</p>
       </div>
       <div class="field">
         <label>時段</label>
@@ -327,12 +327,30 @@
       return d + "・" + (slot || "（未選時段）");
     }
 
-    // 晚上班開放判斷：2026/6/12（含）以前不開放（此日期前老師僅開早上／下午班）
-    // 依「上課日期」判定；尚未選日期時也先灰化，避免誤選。
-    var EVENING_OPEN_AFTER = "2026-06-12";   // 此日期（含）以前晚上班不開放
-    function eveningClosed(dateStr){
-      if(!dateStr) return true;              // 未選日期 → 先灰化晚上班
-      return dateStr <= EVENING_OPEN_AFTER;  // YYYY-MM-DD 字串可直接比較
+    // —— 開放報名規則（依「上課日期」判定，YYYY-MM-DD 字串可直接比較）——
+    //   6/1–6/11：只開「下午」班
+    //   6/12–6/30：開「下午」「晚上」班
+    //   其他日期：全部關閉
+    //   「早上」班全程不開放
+    var REG_START         = "2026-06-01";   // 報名期間起（含）
+    var REG_END           = "2026-06-30";   // 報名期間迄（含）
+    var EVENING_OPEN_FROM = "2026-06-12";   // 晚上班自此日（含）起開放
+
+    // 回傳該「時段」在該日期是否「未開放」（需灰化、不可選）
+    function slotClosed(dateStr, slotName){
+      if(!dateStr) return true;                                  // 未選日期 → 先灰化
+      if(dateStr < REG_START || dateStr > REG_END) return true;  // 非報名期間
+      if(slotName === "早上") return true;                       // 早上班不開放
+      if(slotName === "晚上") return dateStr < EVENING_OPEN_FROM; // 晚上班 6/12 起
+      return false;                                              // 下午班：6/1–6/30 皆開
+    }
+
+    // 灰化標籤文字：依原因給不同說明
+    function closedTag(dateStr, slotName){
+      if(slotName === "早上") return "暫不開放";
+      if(dateStr && (dateStr < REG_START || dateStr > REG_END)) return "未開放報名";
+      if(slotName === "晚上") return "6/12 起開放";
+      return "未開放";
     }
 
     // 模擬名額：依日期＋時段偵測是否滿班（無後端，以確定性雜湊判定）
@@ -349,13 +367,13 @@
       [].forEach.call(slotWrap.children, function(b){
         var name = b.getAttribute("data-slot");
 
-        // 晚上班：6/12（含）以前尚未開放（老師此前只開早上／下午班）→ 灰化、不可選
-        if(name === "晚上" && eveningClosed(dateEl.value)){
+        // 未開放的時段（依報名期間與班別規則）→ 灰化、不可選
+        if(slotClosed(dateEl.value, name)){
           b.classList.add("blocked");
           b.classList.remove("full", "locked");
           if(b.classList.contains("on")){ b.classList.remove("on"); slot = ""; }
           var bt = b.querySelector(".full-tag");
-          if(bt){ bt.textContent = "6/12 後開放"; }
+          if(bt){ bt.textContent = closedTag(dateEl.value, name); }
           var bs = b.querySelector(".seat");
           if(bs){ bs.textContent = ""; bs.classList.remove("show", "few"); }
           return;
