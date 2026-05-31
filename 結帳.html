@@ -258,27 +258,27 @@ fbq('track','PageView');
         <div class="qty">
           <span>報名人數</span>
           <div class="stepper">
-            <button type="button" id="minus" aria-label="減少">−</button>
             <b id="qty">1</b>
-            <button type="button" id="plus" aria-label="增加">+</button>
+            <span style="font-size:13px;color:var(--muted);font-weight:700;margin-left:8px;">1 位 / 筆</span>
           </div>
         </div>
+        <p class="hint-price" style="margin-top:6px;">※ 線上付款一次報名一個名額；多名額請分別報名，或來信 infinit121717@gmail.com。</p>
 
         <div class="sum-lines">
           <div class="ln"><span>單價</span><span id="unit"><del>NT$ 3,000</del> NT$ 1,500</span></div>
           <div class="ln"><span>數量</span><span id="qtyline">× 1</span></div>
           <div class="ln total"><span>總計</span><span id="total">NT$ 1,500</span></div>
-          <p class="hint-price">※ 金額為示意，實際費用以正式課程資訊為準。</p>
+          <p class="hint-price">※ 線上刷卡，付款完成即為您保留名額。</p>
         </div>
 
-        <button class="btn-pay" id="pay">確認報名 →</button>
-        <p class="safe-note">送出後將為您保留名額，並以 Email 寄送繳費與上課資訊。</p>
+        <button class="btn-pay" id="pay">前往付款 →</button>
+        <p class="safe-note">付款由 Recur 安全結帳（信用卡，PCI DSS）。完成後以 Email 寄送收據與上課資訊。</p>
       </div>
 
       <div class="done" id="done">
         <div class="check">✓</div>
-        <h3>報名已送出！</h3>
-        <p id="done-msg">我們已收到您的報名，將盡快以 Email 與您聯繫後續繳費與上課細節。</p>
+        <h3>付款完成！</h3>
+        <p id="done-msg">付款完成，收據與上課細節將以 Email 寄給您。</p>
         <button class="btn-pay" style="margin-top:18px" onclick="location.href='招生分流首頁.html'">回到首頁</button>
       </div>
     </aside>
@@ -289,6 +289,35 @@ fbq('track','PageView');
     var ORIG  = { family: 3000, adult: 3500, good: 3000, drunk: 3500 };
     var LABEL = { family: "親子班", adult: "成人班", good: "健康乖寶寶班", drunk: "酒鬼班" };
     var SERIES = { family: "塗鴉變 3D 模型？！", adult: "塗鴉變 3D 模型？！", good: "迷因變成 3D 模型？！", drunk: "迷因變成 3D 模型？！" };
+
+    // ── 線上金流開關：暫時關閉刷卡，改「填表報名 → Email 聯繫繳費」。改回 true 即恢復 Recur 刷卡。
+    var PAYMENT_ENABLED = false;
+
+    // ── Recur 金流：各班別對應的產品 ID（在 Recur 後台建立）──────────────
+    var RECUR_PK = "pk_live_971e9a83e1269b1166ecf56371449f2756812dc93bc3e66962257303f85c0f06";
+    var PRODUCT = {
+      family: "yr6afxsc3qdbvy86835lf05j",  // 塗鴉變 3D 模型・親子班 NT$1,500
+      adult:  "ees4gsq3hnmshrw52pfbg82y",  // 塗鴉變 3D 模型・成人班 NT$1,600
+      good:   "e0g9gcs1jaxv1cf1zg1zwjii",  // 迷因變成 3D 模型・健康乖寶寶班 NT$1,500
+      drunk:  "qyj8aau0h2tsacl4cfnpo2ko"   // 迷因變成 3D 模型・酒鬼班 NT$2,100
+    };
+
+    // 載入 Recur SDK（已在 head 以 script 標籤載入，這裡等它就緒）
+    var recurInstance = null;
+    function getRecur(){
+      return new Promise(function(resolve, reject){
+        var tries = 0;
+        (function wait(){
+          if (recurInstance) return resolve(recurInstance);
+          if (window.RecurCheckout) {
+            recurInstance = window.RecurCheckout.init({ publishableKey: RECUR_PK });
+            return resolve(recurInstance);
+          }
+          if (tries++ > 60) return reject(new Error("Recur SDK 載入逾時"));
+          setTimeout(wait, 100);
+        })();
+      });
+    }
 
     // ── 報名串接 Google 試算表（Apps Script）──────────────────────────
     // 用同一個 Google 帳戶（infinit121717@gmail.com）即可。一支腳本同時：
@@ -494,16 +523,36 @@ fbq('track','PageView');
       applySlotFull();   // 換班別：依新班別重新判斷各時段是否被鎖定／剩餘名額
       render();
     });
-    document.getElementById("plus").addEventListener("click", function(){ qty++; render(); });
-    document.getElementById("minus").addEventListener("click", function(){ if(qty>1){ qty--; render(); } });
+    var plusBtn = document.getElementById("plus");
+    if(plusBtn){ plusBtn.addEventListener("click", function(){ qty++; render(); }); }
+    var minusBtn = document.getElementById("minus");
+    if(minusBtn){ minusBtn.addEventListener("click", function(){ if(qty>1){ qty--; render(); } }); }
 
     function showDone(){
       document.getElementById("form-side").style.display = "none";
       var d = document.getElementById("done");
       d.classList.add("show");
-      document.getElementById("done-msg").textContent =
-        "已為您保留「" + (LABEL[courseSel.value]||"") + "」" + qty + " 個名額（" + whenText() + "），將盡快以 Email 聯繫後續繳費與上課細節。";
+      var h3 = d.querySelector("h3");
+      if (PAYMENT_ENABLED) {
+        if (h3) h3.textContent = "付款完成！";
+        document.getElementById("done-msg").textContent =
+          "付款完成，已為您保留「" + (LABEL[courseSel.value]||"") + "」" + qty + " 個名額（" + whenText() + "）。收據與上課細節將以 Email 寄出。";
+      } else {
+        if (h3) h3.textContent = "報名已送出！";
+        document.getElementById("done-msg").textContent =
+          "已收到您報名「" + (LABEL[courseSel.value]||"") + "」" + qty + " 個名額（" + whenText() + "）。我們會以 Email 與您聯繫繳費方式與上課細節。";
+      }
       window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    // 寫入 Google 試算表（報名紀錄）；付款成功後呼叫，盡力而為、不阻擋完成畫面
+    function recordBooking(booking){
+      if (!GAS_READY) return Promise.resolve(null);
+      return fetch(GAS_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },  // 避免 CORS 預檢
+        body: JSON.stringify(booking)
+      }).then(function(r){ return r.json(); }).catch(function(){ return null; });
     }
 
     document.getElementById("pay").addEventListener("click", function(){
@@ -524,8 +573,16 @@ fbq('track','PageView');
                 : document.getElementById("email")).focus();
         return;
       }
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailV)){
+        alert("請輸入有效的 Email，付款收據與上課資訊會寄到這裡。");
+        document.getElementById("email").focus();
+        return;
+      }
 
       var c = courseSel.value;
+      var unitPrice = PRICE[c] || 0;
+      var amount = unitPrice * qty;
+      var itemName = (SERIES[c] || "") + " " + (LABEL[c] || c);
       var booking = {
         course_series: SERIES[c] || "",
         class_name: LABEL[c] || c,
@@ -533,46 +590,96 @@ fbq('track','PageView');
         slot: slot,
         when: whenText(),
         qty: qty,
-        price: fmt((PRICE[c]||0) * qty),
+        price: fmt(amount),
         name: nameV,
         phone: phoneV,
         email: emailV
       };
+      booking.booking_id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+                         : (String(Date.now()) + Math.random().toString(36).slice(2));
 
-      // 尚未設定 Apps Script → 展示模式：直接顯示成功（不寫入、不寄出）
-      if (!GAS_READY) { showDone(); return; }
+      // ── 金流暫關：只做報名（寫進試算表 + Email 聯繫繳費），不開 Recur 刷卡 ──
+      if (!PAYMENT_ENABLED) {
+        try {
+          gtag('event','generate_lead',{ currency:'TWD', value:amount,
+            items:[{ item_id:c, item_name:itemName, price:unitPrice, quantity:qty }] });
+          fbq('track','Lead',{ content_name:itemName, value:amount, currency:'TWD' });
+        } catch(_){}
+        var ot0 = payBtn.textContent;
+        payBtn.disabled = true; payBtn.textContent = "送出中…";
+        recordBooking(booking).then(function(res){
+          if (res && res.full) {
+            payBtn.disabled = false; payBtn.textContent = ot0;
+            applySlotFull();
+            alert("很抱歉，這個時段剛好額滿了，請改選其他時段。");
+            return;
+          }
+          showDone();
+        });
+        return;
+      }
+
+      var pid = PRODUCT[c];
+      if (!pid){ alert("此班別暫時無法線上付款，請來信 " + OWNER_EMAIL + " 報名。"); return; }
+
+      // GA4 / Pixel：開始結帳
+      try {
+        gtag('event','begin_checkout',{ currency:'TWD', value:amount,
+          items:[{ item_id:c, item_name:itemName, price:unitPrice, quantity:qty }] });
+        fbq('track','InitiateCheckout',{ content_ids:[c], content_name:itemName,
+          content_type:'product', value:amount, currency:'TWD', num_items:qty });
+      } catch(_){}
+
+      // 點選付款 → 先記一筆「待付款」（lead）；付款完成後會更新為「已付款」。不等結果以免拖慢開窗。
+      booking.event = "initiate";
+      booking.status = "待付款";
+      recordBooking(booking);
 
       var origText = payBtn.textContent;
       payBtn.disabled = true;
-      payBtn.textContent = "送出中…";
+      payBtn.textContent = "開啟付款…";
 
-      fetch(GAS_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },  // 避免 CORS 預檢
-        body: JSON.stringify(booking)
-      })
-      .then(function(r){ return r.json(); })
-      .then(function(res){
-        if(res && res.ok){ showDone(); return; }
-        if(res && res.conflict){                   // 此時段已被其他班「先達開班人數」鎖定
-          currentSlotData = res.slotData || currentSlotData;
-          applySlotFull();
-          payBtn.disabled = false; payBtn.textContent = origText;
-          alert("很抱歉，這個時段已由「" + res.owner + "」優先預約（該班已達開班人數），無法再加開其他班，請改選其他時段。");
-          return;
-        }
-        if(res && res.full){                       // 伺服器端再次確認：剛好額滿
-          currentSlotData = res.slotData || currentSlotData;
-          applySlotFull();
-          payBtn.disabled = false; payBtn.textContent = origText;
-          alert("很抱歉，這個時段剛好額滿了，請改選其他時段。");
-          return;
-        }
-        throw new Error("unexpected");
-      })
-      .catch(function(){
+      getRecur().then(function(recur){
+        var p = recur.checkout({
+          productId: pid,
+          customerEmail: emailV,
+          customerName: nameV,
+          mode: 'modal',
+          // ⚠️ Recur 的 onSuccess 是「結帳視窗建立成功」就觸發（此時還沒付款），不可拿來顯示完成。
+          // 真正付款完成是 onPaymentComplete（status=SUCCEEDED/ACTIVE）。
+          onPaymentComplete: function(res){
+            var st = res && res.status;
+            if (st !== "SUCCEEDED" && st !== "ACTIVE" && st !== "PAID") {
+              payBtn.disabled = false; payBtn.textContent = origText;
+              alert("付款狀態異常（" + (st || "未知") + "）。若已扣款請來信 " + OWNER_EMAIL + " 確認。");
+              return;
+            }
+            try {
+              gtag('event','purchase',{ transaction_id:(res&&res.id)||'',
+                currency:'TWD', value:amount,
+                items:[{ item_id:c, item_name:itemName, price:unitPrice, quantity:qty }] });
+              fbq('track','Purchase',{ content_ids:[c], content_name:itemName,
+                content_type:'product', value:amount, currency:'TWD', num_items:qty });
+            } catch(_){}
+            booking.event = "paid";
+            booking.status = "已付款";
+            booking.order_id = (res && res.id) || "";
+            booking.paid = true;
+            recordBooking(booking).then(function(){ showDone(); });   // 付款完成才顯示「報名成功」
+          },
+          onError: function(err){
+            payBtn.disabled = false; payBtn.textContent = origText;
+            alert("付款未完成：" + ((err && err.message) || "請再試一次") +
+                  "\n如有問題請來信 " + OWNER_EMAIL + "。");
+          },
+          onClose: function(){
+            payBtn.disabled = false; payBtn.textContent = origText;
+          }
+        });
+        if (p && typeof p.catch === "function") { p.catch(function(){ /* onError/onClose 已處理 UI */ }); }
+      }, function(){
         payBtn.disabled = false; payBtn.textContent = origText;
-        alert("送出失敗，請稍後再試，或直接來信 " + OWNER_EMAIL + " 報名。");
+        alert("付款系統載入失敗，請稍後再試，或直接來信 " + OWNER_EMAIL + " 報名。");
       });
     });
 
