@@ -128,7 +128,7 @@ const DETAIL_EXTRA = {
       "上課作品的單色 FDM 列印模型（短課以課後寄送至您指定 7-11、全家門市或自取之方式取件）",
     ],
     info: [
-      { label: "上課時間", value: "3 小時" },
+      { label: "上課時間", value: "3–3.5 小時" },
       { label: "課程金額", value: <><del>原價 3,000 元</del><strong>限時開幕特惠價 1,500 元</strong>（含材料費）</> },
       { label: "開班人數", value: "10 人開班（達標會以 email 通知）" },
       { label: "課程日期", value: "請至結帳頁面查看與選擇" },
@@ -246,7 +246,7 @@ const DETAIL_EXTRA = {
     },
     info: [
       { label: "上課時間", value: "3.5 小時" },
-      { label: "課程金額", value: <><del>原價 3,500 元</del><strong>開幕特惠價 2,100 元</strong>（含酒錢、材料費）</> },
+      { label: "課程金額", value: <><del>原價 3,500 元</del><strong>開幕特惠價 2,500 元</strong>（含酒錢、材料費）</> },
       { label: "開班人數", value: "10 人開班（達標會以 email 通知）" },
       { label: "課程日期", value: "請至結帳頁面查看與選擇" },
       { label: "課程地址", value: "台北市中山區長安東路二段 31 號 4 樓之 5 — 404Table 教室" },
@@ -277,7 +277,7 @@ const COMMON_DETAIL = {
     "上課作品的單色 FDM 列印模型（短課以課後寄送至您指定 7-11、全家門市或自取之方式取件）",
   ],
   info: [
-    { label: "上課時間", value: "3 小時" },
+    { label: "上課時間", value: "3–3.5 小時" },
     { label: "課程金額", value: <><del>原價 3,000 元</del><strong>限時開幕特惠價 1,500 元</strong>（含材料費）</> },
     { label: "開班人數", value: "10 人開班（達標會以 email 通知）" },
     { label: "課程日期", value: "請至結帳頁面查看與選擇" },
