@@ -484,16 +484,23 @@ fbq('track','PageView');
     }
 
     function refreshSlots(){
-      if(!GAS_READY || !dateEl.value){ currentSlotData = {}; applySlotFull(); return; }
-      // 查詢中提示
+      currentSlotData = {};        // 換日期先清空舊座位資料
+      applySlotFull();             // 立刻依「開放日期規則」套用：下午/晚上即時可選，不必等 GAS
+      if(!GAS_READY || !dateEl.value){ return; }
+      // 對「可選」時段顯示查詢中（封鎖／隱藏的不動）
       [].forEach.call(slotWrap.children, function(b){
+        if(b.style.display === "none" || b.classList.contains("blocked")) return;
         var seat = b.querySelector(".seat");
         if(seat){ seat.textContent = "名額查詢中…"; seat.classList.add("show"); seat.classList.remove("few"); }
       });
-      fetch(GAS_ENDPOINT + "?date=" + encodeURIComponent(dateEl.value))
+      var ctrl = (typeof AbortController !== "undefined") ? new AbortController() : null;
+      var timer = setTimeout(function(){ if(ctrl) ctrl.abort(); }, 8000);   // GAS 慢 → 8 秒逾時
+      fetch(GAS_ENDPOINT + "?date=" + encodeURIComponent(dateEl.value), ctrl ? { signal: ctrl.signal } : {})
         .then(function(r){ return r.json(); })
-        .then(function(d){ currentSlotData = d || {}; applySlotFull(); render(); })
+        .then(function(d){ clearTimeout(timer); currentSlotData = d || {}; applySlotFull(); render(); })
         .catch(function(){
+          clearTimeout(timer);
+          // 查詢失敗／逾時：清掉「查詢中」字樣，時段仍可依開放規則選（不卡死）
           [].forEach.call(slotWrap.children, function(b){
             var seat = b.querySelector(".seat"); if(seat){ seat.textContent = ""; seat.classList.remove("show","few"); }
           });
