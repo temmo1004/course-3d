@@ -4,6 +4,26 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>報名結帳 — 塗鴉變 3D 模型</title>
+
+<!-- GA4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6P4C0V0QH0"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-6P4C0V0QH0');
+</script>
+
+<!-- Meta Pixel -->
+<script>
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init','1501976728044362');
+fbq('track','PageView');
+</script>
+
+<!-- Recur 金流 SDK (UMD) -->
+<script async src="https://unpkg.com/recur-tw@latest/dist/recur.umd.js"></script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
@@ -274,6 +294,33 @@
     var LABEL = { family: "親子班", adult: "成人班", good: "健康乖寶寶班", drunk: "酒鬼班" };
     var SERIES = { family: "塗鴉變 3D 模型？！", adult: "塗鴉變 3D 模型？！", good: "迷因變成 3D 模型？！", drunk: "迷因變成 3D 模型？！" };
 
+    // ── 線上金流（Recur，hosted 跳轉頁）。改 false 即回純報名制（Email 聯繫繳費）。
+    var PAYMENT_ENABLED = true;
+    var RECUR_PK = "pk_live_971e9a83e1269b1166ecf56371449f2756812dc93bc3e66962257303f85c0f06";
+    var PRODUCT = {
+      family: "yr6afxsc3qdbvy86835lf05j",  // 親子班 1500
+      adult:  "ees4gsq3hnmshrw52pfbg82y",  // 成人班 1600
+      good:   "e0g9gcs1jaxv1cf1zg1zwjii",  // 健康乖寶寶班 1500
+      drunk:  "qyj8aau0h2tsacl4cfnpo2ko"   // 酒鬼班 2500
+    };
+    var recurInstance = null;
+    function getRecur(){
+      return new Promise(function(resolve, reject){
+        var tries = 0;
+        (function w(){
+          if (recurInstance) return resolve(recurInstance);
+          if (window.RecurCheckout) { recurInstance = window.RecurCheckout.init({ publishableKey: RECUR_PK }); return resolve(recurInstance); }
+          if (tries++ > 60) return reject(new Error("Recur SDK 載入逾時"));
+          setTimeout(w, 100);
+        })();
+      });
+    }
+    function recordBooking(b){
+      if (typeof GAS_READY !== "undefined" && !GAS_READY) return Promise.resolve(null);
+      return fetch(GAS_ENDPOINT, { method:"POST", headers:{ "Content-Type":"text/plain;charset=utf-8" }, body: JSON.stringify(b) })
+        .then(function(r){ return r.json(); }).catch(function(){ return null; });
+    }
+
     // ── 報名串接 Google 試算表（Apps Script）──────────────────────────
     // 用同一個 Google 帳戶（infinit121717@gmail.com）即可。一支腳本同時：
     //   ① 把每筆報名寫進試算表（可統計「每個時段報了幾人」）
@@ -495,12 +542,24 @@
     document.getElementById("plus").addEventListener("click", function(){ qty++; render(); });
     document.getElementById("minus").addEventListener("click", function(){ if(qty>1){ qty--; render(); } });
 
-    function showDone(){
+    function showDone(b){
       document.getElementById("form-side").style.display = "none";
       var d = document.getElementById("done");
       d.classList.add("show");
-      document.getElementById("done-msg").textContent =
-        "已為您保留「" + (LABEL[courseSel.value]||"") + "」" + qty + " 個名額（" + whenText() + "），將盡快以 Email 聯繫後續繳費與上課細節。";
+      var h3 = d.querySelector("h3");
+      var klass = b ? (b.class_name || "") : (LABEL[courseSel.value] || "");
+      var q     = b ? b.qty : qty;
+      var when  = b ? (b.when || "") : whenText();
+      if (PAYMENT_ENABLED) {
+        if (h3) h3.textContent = "付款完成！";
+        document.getElementById("done-msg").textContent = (b && b._generic)
+          ? "付款完成，感謝報名！收據與上課地點/時間將以 Email 寄給您。"
+          : "付款完成，已為您保留「" + klass + "」" + q + " 個名額（" + when + "）。收據與上課細節將以 Email 寄出。";
+      } else {
+        if (h3) h3.textContent = "報名已送出！";
+        document.getElementById("done-msg").textContent =
+          "已為您保留「" + klass + "」" + q + " 個名額（" + when + "），將盡快以 Email 聯繫後續繳費與上課細節。";
+      }
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
@@ -536,6 +595,39 @@
         phone: phoneV,
         email: emailV
       };
+      booking.booking_id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+                         : (String(Date.now()) + Math.random().toString(36).slice(2));
+
+      // ── 線上金流：hosted 跳轉到 checkout.recur.tw，付完才導回 successUrl ──
+      if (PAYMENT_ENABLED) {
+        var pid = PRODUCT[c];
+        if (!pid){ alert("此班別暫時無法線上付款，請來信 " + OWNER_EMAIL + " 報名。"); return; }
+        var unitPrice = PRICE[c] || 0, amount = unitPrice * qty, itemName = (SERIES[c]||"") + " " + (LABEL[c]||c);
+        try {
+          gtag('event','begin_checkout',{ currency:'TWD', value:amount,
+            items:[{ item_id:c, item_name:itemName, price:unitPrice, quantity:qty }] });
+          fbq('track','InitiateCheckout',{ content_ids:[c], content_name:itemName,
+            content_type:'product', value:amount, currency:'TWD', num_items:qty });
+        } catch(_){}
+        booking.amount = amount; booking.item_id = c; booking.item_name = itemName; booking.unit_price = unitPrice;
+        try { localStorage.setItem("recur_pending", JSON.stringify(booking)); } catch(_){}
+        payBtn.disabled = true; payBtn.textContent = "前往付款…";
+        var _base = location.origin + location.pathname;
+        getRecur().then(function(recur){
+          recur.checkout({
+            productId: pid, customerEmail: emailV, customerName: nameV, mode: 'redirect',
+            successUrl: _base + "?recur_status=success&bid=" + encodeURIComponent(booking.booking_id),
+            cancelUrl:  _base + "?recur_status=cancel"
+          }).catch(function(err){
+            payBtn.disabled = false; payBtn.textContent = "前往付款 →";
+            alert("無法前往付款：" + ((err && err.message) || "請再試一次") + "\n如有問題請來信 " + OWNER_EMAIL + "。");
+          });
+        }, function(){
+          payBtn.disabled = false; payBtn.textContent = "前往付款 →";
+          alert("付款系統載入失敗，請稍後再試，或直接來信 " + OWNER_EMAIL + " 報名。");
+        });
+        return;
+      }
 
       // 尚未設定 Apps Script → 展示模式：直接顯示成功（不寫入、不寄出）
       if (!GAS_READY) { showDone(); return; }
@@ -573,6 +665,49 @@
         alert("送出失敗，請稍後再試，或直接來信 " + OWNER_EMAIL + " 報名。");
       });
     });
+
+    // 付款模式：把報名文案改成付款導向
+    if (PAYMENT_ENABLED) {
+      var _pay = document.getElementById("pay");
+      if (_pay) _pay.textContent = "前往付款 →";
+      [].forEach.call(document.querySelectorAll(".safe-note"), function(n){
+        n.textContent = "付款由 Recur 安全結帳（信用卡）。完成後以 Email 寄送收據與上課資訊。";
+      });
+      [].forEach.call(document.querySelectorAll(".hint-price"), function(n){
+        if (n.textContent.indexOf("示意") >= 0) n.textContent = "※ 線上刷卡，付款完成即為您保留名額。";
+      });
+    }
+
+    // 從 Recur hosted 結帳跳轉回來：?recur_status=success/cancel
+    (function handleRecurReturn(){
+      var params = new URLSearchParams(location.search);
+      var rs = params.get("recur_status");
+      if (!rs) return;
+      if (rs === "cancel") {
+        try { localStorage.removeItem("recur_pending"); } catch(_){}
+        history.replaceState(null, "", location.pathname);
+        return;
+      }
+      if (rs !== "success") return;
+      var saved = null;
+      try { saved = JSON.parse(localStorage.getItem("recur_pending") || "null"); } catch(_){}
+      try { localStorage.removeItem("recur_pending"); } catch(_){}
+      var bid = params.get("bid");
+      var orderId = params.get("session_id") || params.get("order_id") || params.get("session") || params.get("order") || "";
+      history.replaceState(null, "", location.pathname + "?paid=1");
+      if (saved && (!bid || saved.booking_id === bid)) {
+        try {
+          gtag('event','purchase',{ transaction_id: orderId, currency:'TWD', value: saved.amount || 0,
+            items:[{ item_id: saved.item_id, item_name: saved.item_name, price: saved.unit_price, quantity: saved.qty }] });
+          fbq('track','Purchase',{ content_ids:[saved.item_id], content_name: saved.item_name,
+            content_type:'product', value: saved.amount || 0, currency:'TWD', num_items: saved.qty });
+        } catch(_){}
+        saved.order_id = orderId; saved.paid = true;
+        recordBooking(saved).then(function(){ showDone(saved); });
+      } else {
+        showDone({ _generic: true });
+      }
+    })();
 
     applyCourseSlots();   // 初始：依班別決定可選時段
     applySlotFull();   // 初始即套用（時段灰化等狀態）
