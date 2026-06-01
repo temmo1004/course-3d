@@ -866,7 +866,8 @@ fbq('track','PageView');
           gtag('event','purchase',{ transaction_id: sid, currency:'TWD', value: saved.amount || 0,
             items:[{ item_id: saved.item_id, item_name: saved.item_name, price: saved.unit_price, quantity: saved.qty }] });
           fbq('track','Purchase',{ content_ids:[saved.item_id], content_name: saved.item_name,
-            content_type:'product', value: saved.amount || 0, currency:'TWD', num_items: saved.qty });
+            content_type:'product', value: saved.amount || 0, currency:'TWD', num_items: saved.qty },
+            { eventID: sid });   // 與後端 CAPI(event_id=checkout id=sid) 去重，避免 Pixel+CAPI 重複計數
         } catch(_){}
         saved.order_id = sid; saved.paid = true;
         showDone(saved);
