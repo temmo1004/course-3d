@@ -8,10 +8,20 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "showSubtitle": true,
   "autoDemo": true,
   "demoHold": 1.15,
-  "enterOn": "single"
+  "enterOn": "single",
+  "stickyCTA": true,
+  "menuPos": "top"
 }/*EDITMODE-END*/;
 
 const A = "assets/";
+
+// 各班別開幕特惠價（用於底部固定報名列顯示）
+const PRICE = {
+  family: { now: "1,500", was: "3,000" },
+  adult:  { now: "1,600", was: "3,500" },
+  good:   { now: "1,500", was: "3,000" },
+  drunk:  { now: "2,500", was: "3,500" },
+};
 
 // ===================================================================
 // 系列課程設定 — 每個主題課程有自己的封面 hero（撕紙分流結構相同），
@@ -19,15 +29,15 @@ const A = "assets/";
 // 提供（見 doodle-hero.jsx / meme-hero.jsx），這裡只描述班別與揭露封面。
 // ===================================================================
 const COURSES = [
-  { id:"doodle", name:"塗鴉變 3D 模型？！", hero:"doodle",
+  { id:"doodle", name:"塗鴉變 3D 模型？！", short:"塗鴉變 3D 模型", hero:"doodle",
     left:  { key:"family", label:"親子班" },
     right: { key:"adult",  label:"成人班" },
     cover: { family: A+"cover-family.webp", adult: A+"cover-adult.webp" } },
-  { id:"meme", name:"迷因變成 3D 模型？！", hero:"meme",
+  { id:"meme", name:"迷因變成 3D 模型？！", short:"迷因變 3D 模型", hero:"meme",
     left:  { key:"good",  label:"健康乖寶寶班" },
     right: { key:"drunk", label:"酒鬼班" },
     cover: { good: A+"meme-cover-good.webp", drunk: A+"meme-cover-drunk.webp" } },
-  { id:"tbd", name:"敬請期待", hero:"doodle", comingSoon:true,
+  { id:"tbd", name:"敬請期待", short:"敬請期待", hero:"doodle", comingSoon:true,
     left:  { key:"family", label:"親子班" },
     right: { key:"adult",  label:"成人班" },
     cover: { family: A+"cover-family.webp", adult: A+"cover-adult.webp" } },
@@ -484,6 +494,8 @@ function App() {
   const [touch, setTouch] = useState(false);
   const [sp, setSp] = useState(0);               // scroll progress 0..1
   const [activeCourse, setActiveCourse] = useState(0);  // centred course in the carousel
+  const [drawerOpen, setDrawerOpen] = useState(false);    // 手機：右上角綜合選單抽屜
+  const [dropdownOpen, setDropdownOpen] = useState(false);// 手機：所有課程選單下拉
   const menuRef = useRef(null);
   const cellRefs = useRef([]);
   const menuRaf = useRef(0);
@@ -542,6 +554,12 @@ function App() {
     onScroll();
     return () => { window.removeEventListener("scroll", onScroll); window.removeEventListener("resize", onScroll); };
   }, []);
+
+  // 抽屜開啟時鎖住背景捲動
+  useEffect(() => {
+    document.body.style.overflow = drawerOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [drawerOpen]);
 
   useEffect(() => {
     let done = 0; const total = ALL_IMG.length;
@@ -611,6 +629,21 @@ function App() {
     setActive(null);
     setPhase("home");
     setEntered(null);
+  };
+  // 手機：從綜合選單直接跳到某課程的某個班別（封面已撕開、直接看細分說明）
+  const goToClass = (ci, side) => {
+    const c = COURSES[ci];
+    setActiveCourse(ci);
+    centerCourse(ci, "auto");
+    setDrawerOpen(false);
+    setDropdownOpen(false);
+    if (c.comingSoon) { setActive(null); setPhase("home"); setEntered(null); window.scrollTo({ top: 0, behavior: "smooth" }); return; }
+    setEntered(side === "left" ? c.left.key : c.right.key);
+    setActive(null);
+    setTip(p => ({ ...p, show: false }));
+    setPhase("tearing");
+    setTimeout(() => setPhase("revealed"), 780);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
   const onMenuScroll = () => {
     cancelAnimationFrame(menuRaf.current);
@@ -699,8 +732,50 @@ function App() {
 
   const tipText = (tip.side === "left" ? course.left.label : course.right.label) + "・" + t.tooltipText;
 
+  // 手機版三區塊課程選擇列（可放封面上方或下方）
+  const courseBar = (
+    <header className="mobile-coursebar">
+      <div className="mcb-head">
+        <button type="button" className={"mcb-title" + (dropdownOpen ? " open" : "")}
+                aria-expanded={dropdownOpen}
+                onClick={() => setDropdownOpen(o => !o)}>
+          本系列所有課程選單 <span className="caret">▾</span>
+        </button>
+      </div>
+      <div className="mcb-segs">
+        {COURSES.map((c, i) => (
+          <button type="button" key={i}
+                  className={"mcb-seg" + (i === activeCourse ? " active" : "")}
+                  onClick={() => { selectCourse(i); setDropdownOpen(false); }}>
+            {c.short || c.name}
+          </button>
+        ))}
+      </div>
+      {dropdownOpen && (
+        <div className="mcb-dropdown" role="menu">
+          {COURSES.map((c, i) => (
+            <button type="button" key={i} role="menuitem"
+                    className={i === activeCourse ? "active" : ""}
+                    onClick={() => { selectCourse(i); setDropdownOpen(false); }}>
+              {c.name}
+            </button>
+          ))}
+        </div>
+      )}
+    </header>
+  );
+
+  // 底部固定報名列：已選班別→帶班別與特惠價直達結帳；未選→系列報名
+  const ctaActive = phase === "revealed" && !!entered;
+  const ctaPrice = ctaActive ? PRICE[entered] : null;
+  const ctaHref = "結帳.html" + (ctaActive ? "?course=" + entered : "");
+  const showCTA = t.stickyCTA && !(course.comingSoon && !ctaActive);
+
   return (
     <div className="page">
+
+      {/* ============ 手機版：三區塊課程選擇列（位置可由 Tweaks 調整）============ */}
+      {t.menuPos !== "below" && courseBar}
 
       {/* ============ HERO FRAME (16:9 torn-paper split) ============ */}
       <section className={stageCls}
@@ -745,6 +820,25 @@ function App() {
         </div>
       )}
 
+      {/* 課程選單放「封面下方」時，於此處渲染 */}
+      {t.menuPos === "below" && courseBar}
+
+      {/* 手機版：班別直接選擇（選中才亮，邏輯與課程選單一致；home 與 revealed 皆顯示）*/}
+      {!course.comingSoon && (
+        <div className="class-pick">
+          <button type="button"
+                  className={entered === course.left.key ? "active" : ""}
+                  onClick={() => (phase === "revealed" && entered === course.left.key) ? back() : enter("left")}>
+            {course.left.label}
+          </button>
+          <button type="button"
+                  className={entered === course.right.key ? "active" : ""}
+                  onClick={() => (phase === "revealed" && entered === course.right.key) ? back() : enter("right")}>
+            {course.right.label}
+          </button>
+        </div>
+      )}
+
       {/* ============ 主題課程選單 (色塊＋文字) ============ */}
       {isHome && (
         <div className="section-wrap menu-block">
@@ -773,6 +867,46 @@ function App() {
       )}
 
       {/* ============ overlays ============ */}
+
+      {/* 電腦版：右側半透明側邊欄（觸發頁籤 + 滑出面板）*/}
+      <button type="button" className="side-tab" aria-label="開啟課程選單"
+              onClick={() => setDrawerOpen(true)}>
+        <span className="st-bars"><span></span><span></span><span></span></span>
+        課程・報名
+      </button>
+      <div className={"side-scrim" + (drawerOpen ? " open" : "")}
+           onClick={() => setDrawerOpen(false)}></div>
+      <aside className={"side-panel" + (drawerOpen ? " open" : "")} aria-hidden={!drawerOpen}>
+        <div className="sp-head">
+          <h3>所有課程</h3>
+          <button type="button" className="sp-close" aria-label="關閉選單"
+                  onClick={() => setDrawerOpen(false)}>✕</button>
+        </div>
+        <div className="sp-body">
+          {COURSES.map((c, i) => (
+            <div className={"sp-course" + (i === activeCourse ? " cur" : "")} key={i}>
+              <button type="button" className="sp-name"
+                      onClick={() => { selectCourse(i); setDrawerOpen(false); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
+                {c.short || c.name}
+              </button>
+              {c.comingSoon
+                ? <p className="sp-soon">敬請期待，更多課程籌備中</p>
+                : <div className="sp-classes">
+                    <button type="button" className="sp-class" onClick={() => goToClass(i, "left")}>
+                      {c.left.label}<span className="go">→</span>
+                    </button>
+                    <button type="button" className="sp-class" onClick={() => goToClass(i, "right")}>
+                      {c.right.label}<span className="go">→</span>
+                    </button>
+                  </div>}
+            </div>
+          ))}
+        </div>
+        <div className="sp-foot">
+          <a className="sp-pay" href="結帳.html">前往報名・結帳 →</a>
+        </div>
+      </aside>
+
       <div className={"tooltip" + (tip.show ? " show" : "")} style={{ left: tip.x, top: tip.y }}>
         {tipText}<span className="arrow">→</span>
       </div>
@@ -783,6 +917,24 @@ function App() {
         <div className="track"><div className="thumb" /></div>
         <div className={"rail-hint" + (sp > 0.02 ? " gone" : "")}>向下捲動</div>
       </div>
+
+      {/* 底部固定報名列（手機版）— 最直覺、最短的付款路徑 */}
+      {showCTA && (
+        <a className={"mobile-cta" + (ctaActive ? " is-class" : "")} href={ctaHref}>
+          <div className="cta-info">
+            {ctaActive
+              ? <React.Fragment>
+                  <span className="cta-label">{enteredLabel}・限時開幕特惠</span>
+                  <span className="cta-price"><del>原價 {ctaPrice.was}</del><span className="amt">NT$&nbsp;{ctaPrice.now}</span></span>
+                </React.Fragment>
+              : <React.Fragment>
+                  <span className="cta-label">{course.short}・限時開幕特惠</span>
+                  <span className="cta-price">名額有限，立即卡位 →</span>
+                </React.Fragment>}
+          </div>
+          <span className="cta-btn">{ctaActive ? "報名 " + enteredLabel : "立即報名"}</span>
+        </a>
+      )}
 
       <TweaksPanel>
         <TweakSection label="撕紙分流視覺" />
@@ -796,6 +948,10 @@ function App() {
         <TweakToggle label="顯示底部標語條" value={t.showSubtitle} onChange={(v)=>setTweak("showSubtitle", v)} />
 
         <TweakSection label="手機互動" />
+        <TweakToggle label="底部固定報名列" value={t.stickyCTA} onChange={(v)=>setTweak("stickyCTA", v)} />
+        <TweakRadio label="課程選單位置" value={t.menuPos}
+                    options={[{value:"top",label:"封面上方"},{value:"below",label:"封面下方"}]}
+                    onChange={(v)=>setTweak("menuPos", v)} />
         <TweakToggle label="自動展示排擠動態" value={t.autoDemo} onChange={(v)=>setTweak("autoDemo", v)} />
         <TweakSlider label="展示停留" value={t.demoHold} min={0.6} max={2.2} step={0.05} unit="s"
                      onChange={(v)=>setTweak("demoHold", v)} />

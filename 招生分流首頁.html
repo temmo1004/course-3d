@@ -662,13 +662,28 @@
 
   /* hero cues: these are just hints — keep them small and quiet so they
      don't compete with the cover. Names stay legible but un-highlighted. */
-  html.mobv .hero-cues { margin-top:11px; gap:4px; }
-  html.mobv .click-hint { font-size:11.5px; font-weight:600; color:#9a8f78; text-align:center; flex-wrap:wrap; justify-content:center; gap:5px; letter-spacing:.01em; }
-  html.mobv .click-hint .up { display:none; }
-  /* always break the "以瞭解…" clause onto its own line (comma trails line 1),
-     so short-label courses (塗鴉) wrap the same clean way as 迷因 */
-  html.mobv .click-hint .hint-tail { flex-basis:100%; }
+  /* 手機版：整塊隱藏（改用可直接點選的班別按鈕＋右側捲動軌），
+     避免它的上邊距在「未選/已選」間把選擇欄往下推，造成跳動 */
+  html.mobv .hero-cues { display:none; }
   html.mobv .ch-name { font-weight:800; color:#6a5f49; box-shadow:none; padding:0; }
+
+  /* 班別直接選擇— 與課程選單完全同一套：白底、選中才亮黃，滿版方角、依文字平均分割 */
+  .class-pick { display:none; }
+  html.mobv .class-pick {
+    display:grid; grid-template-columns:1fr 1fr; gap:0; width:100%; padding:0;
+    border-top:1.5px solid rgba(120,105,75,.24);
+    border-bottom:1.5px solid rgba(120,105,75,.24);
+  }
+  .class-pick button {
+    display:flex; align-items:center; justify-content:center;
+    min-height:48px; padding:8px 10px; border:0; border-radius:0;
+    background:#fff; color:#5a5444;
+    font-family:inherit; font-weight:900; font-size:15px; line-height:1.25;
+    cursor:pointer; text-wrap:balance; -webkit-tap-highlight-color:transparent;
+    transition:background .18s ease, color .18s ease;
+  }
+  .class-pick button.active { background:var(--yellow); color:var(--ink); }
+  .class-pick button + button { border-left:1.5px solid rgba(120,105,75,.18); }
   .ch-name { font-weight:900; color:var(--ink); box-shadow:inset 0 -7px 0 rgba(243,220,62,.55); padding:0 1px; }
   html.mobv .scroll-cue { display:none; }   /* redundant — the side rail is the scroll hint */
 
@@ -714,31 +729,25 @@
   html.mobv .prepare-note { font-size:12.5px; }
   html.mobv .series-note { font-size:12.5px; }
 
-  /* —— three-step feature: tidy thumbnail + text cards —— */
-  html.mobv .feature-grid { grid-template-columns:1fr; gap:12px; margin-top:0; }
+  /* —— three-step feature（手機版）：統一採「大圖在上、文字在下」的卡片格式
+        （與迷因課程一致；塗鴉課程原本的 72px 縮圖左置版型已移除）—— */
+  html.mobv .feature-grid { grid-template-columns:1fr; gap:14px; margin-top:0; }
   html.mobv .feature {
-    display:grid; grid-template-columns:72px 1fr; column-gap:15px; row-gap:4px; align-items:center;
-    background:#f4efe4; border:1px solid rgba(120,105,75,.16); border-radius:14px; padding:14px;
+    display:block;
+    background:#f4efe4; border:1px solid rgba(120,105,75,.16); border-radius:14px; padding:14px 14px 18px;
   }
-  html.mobv .feature .ph { grid-column:1; grid-row:1 / 3; width:72px; height:72px; aspect-ratio:auto; align-self:center; font-size:0; padding:0; border-radius:10px; }
-  html.mobv .feature .feat-art { grid-column:1; grid-row:1 / 3; width:72px; height:72px; max-width:72px; aspect-ratio:auto; align-self:center; margin:0; }
-  html.mobv .feature-grid.feats-meme .feat-art { width:72px; max-width:72px; }
-  html.mobv .feature .ph::before { margin-bottom:0; width:30px; height:30px; }
-  html.mobv .feature h4 { grid-column:2; grid-row:1; align-self:end; margin:0; font-size:16.5px; }
-  html.mobv .feature p  { grid-column:2; grid-row:2; align-self:start; margin:1px 0 0; font-size:13.5px; line-height:1.7; }
-
-  /* —— meme course on phones: stack a LARGE image above the text.
-        The detailed meme figures are illegible at 72px, so for this course
-        only we drop the thumbnail-left grid and go full-width image on top. —— */
-  html.mobv .feature-grid.feats-meme .feature {
-    display:block; padding:14px 14px 18px;
+  html.mobv .feature .ph {
+    width:100%; aspect-ratio:4 / 3; margin:0 0 12px; padding:0; border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
   }
-  html.mobv .feature-grid.feats-meme .feat-art {
+  html.mobv .feature .ph::before { margin-bottom:0; width:34px; height:34px; }
+  html.mobv .feature .feat-art {
     width:100%; max-width:100%; height:auto; aspect-ratio:auto;
-    margin:0 0 12px; display:block;
+    margin:0 auto 12px; display:block;
   }
-  html.mobv .feature-grid.feats-meme .feature h4 { margin:0; font-size:17px; }
-  html.mobv .feature-grid.feats-meme .feature p  { margin:5px 0 0; font-size:14px; }
+  html.mobv .feature-grid.feats-meme .feat-art { width:100%; max-width:100%; }
+  html.mobv .feature h4 { margin:0; font-size:17px; }
+  html.mobv .feature p  { margin:5px 0 0; font-size:14px; line-height:1.7; }
 
   /* —— back button on phones: keep it as a quiet, semi-transparent pill so it
         doesn't cover the cover art. It only solidifies while being pressed. —— */
@@ -765,6 +774,190 @@
   html.mobv .detail-extra { margin-top:48px; padding-top:32px; }
   html.mobv .extra-imgs { grid-template-columns:1fr; gap:14px; }
   html.mobv .series-bottom { margin-top:48px; }
+
+  /* ===================================================================
+     MOBILE 頂部課程選擇列（html.mobv）— 三個可直接點擊的課程區塊，
+     移到封面選擇器「之上」，並提供下拉選單與右上角三槓綜合選單。
+     桌機版維持原本的置中輪播（.menu-block）。
+     =================================================================== */
+  .mobile-coursebar { display:none; }
+  .mobile-burger { display:none; }
+
+  /* 手機：隱藏原本置中輪播，改用上方三區塊 */
+  html.mobv .menu-block { display:none; }
+
+  html.mobv .mobile-coursebar {
+    display:block;
+    padding:16px 0 0;          /* 三區塊滿版：左右不留空隙 */
+  }
+  .mcb-head {
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:9px; padding:0 18px;
+  }
+  .mcb-title {
+    display:inline-flex; align-items:center; gap:7px;
+    background:transparent; border:0; cursor:pointer; padding:4px 0;
+    font-family:inherit; font-weight:900; font-size:13px; letter-spacing:.12em;
+    color:#463f33; -webkit-tap-highlight-color:transparent;
+  }
+  .mcb-title::before {
+    content:""; width:5px; height:1.15em; border-radius:2px; background:var(--yellow); flex:none;
+  }
+  .mcb-title .caret { font-size:10px; opacity:.65; transition:transform .22s ease; }
+  .mcb-title.open .caret { transform:rotate(180deg); }
+
+  /* 三個區塊 */
+  /* 三個區塊：左右滿版、彼此緊貼，僅以細線分隔 */
+  .mcb-segs {
+    display:grid; grid-template-columns:1fr 1fr 1fr; gap:0;
+    border-top:1.5px solid rgba(120,105,75,.24);
+    border-bottom:1.5px solid rgba(120,105,75,.24);
+  }
+  .mcb-seg {
+    display:flex; align-items:center; justify-content:center; text-align:center;
+    min-height:48px; padding:8px 6px; border:0; border-radius:0;
+    border-left:1.5px solid rgba(120,105,75,.18);
+    background:#fff; color:#5a5444;
+    font-family:inherit; font-weight:900; font-size:13.5px; line-height:1.28;
+    cursor:pointer; text-wrap:balance; -webkit-tap-highlight-color:transparent;
+    transition:background .18s ease, color .18s ease;
+  }
+  .mcb-seg:first-child { border-left:0; }
+  .mcb-seg.active {
+    background:var(--yellow); color:var(--ink);
+  }
+  .mcb-seg:active { background:rgba(243,209,30,.4); }
+
+  /* 下拉選單（掛在「所有課程選單」標題下） */
+  .mcb-dropdown {
+    margin:9px 18px 0; display:flex; flex-direction:column; gap:2px;
+    background:#fff; border:1px solid rgba(120,105,75,.22); border-radius:12px;
+    padding:6px; box-shadow:0 16px 32px -16px rgba(70,52,24,.5);
+  }
+  .mcb-dropdown button {
+    text-align:left; background:transparent; border:0; cursor:pointer;
+    font-family:inherit; font-weight:800; font-size:14.5px; color:#3a342a;
+    padding:11px 13px; border-radius:8px; -webkit-tap-highlight-color:transparent;
+  }
+  .mcb-dropdown button.active { background:rgba(243,209,30,.24); }
+  .mcb-dropdown button:active { background:rgba(243,209,30,.36); }
+
+  /* ===================================================================
+     DESKTOP 右側半透明側邊欄（電腦版專用）— 觸發頁籤 + 滑出面板，
+     方便快速瀏覽所有課程或直接前往報名。手機版隱藏（已有自己的導覽）。
+     =================================================================== */
+  .side-tab {
+    position:fixed; z-index:38; top:18px; right:0;
+    display:flex; align-items:center; gap:10px;
+    padding:11px 17px 11px 19px; border:0;
+    border-radius:999px 0 0 999px;
+    background:rgba(28,26,22,.46); color:#fff; cursor:pointer;
+    backdrop-filter:blur(9px); -webkit-backdrop-filter:blur(9px);
+    box-shadow:0 8px 24px -10px rgba(20,16,8,.6);
+    font-family:inherit; font-weight:800; font-size:14px; letter-spacing:.06em;
+    transition:background .2s ease, padding .2s ease;
+  }
+  .side-tab:hover { background:rgba(28,26,22,.7); padding-right:21px; }
+  .side-tab .st-bars { display:flex; flex-direction:column; gap:3.5px; }
+  .side-tab .st-bars span { display:block; width:17px; height:2.2px; border-radius:2px; background:#fff; }
+
+  .side-scrim {
+    position:fixed; inset:0; z-index:44; background:rgba(20,16,8,.26);
+    opacity:0; pointer-events:none; transition:opacity .3s ease;
+  }
+  .side-scrim.open { opacity:1; pointer-events:auto; }
+
+  .side-panel {
+    position:fixed; z-index:45; top:0; right:0; height:100%; width:min(34vw, 384px);
+    display:flex; flex-direction:column; overflow:hidden;
+    background:rgba(248,244,236,.8);
+    backdrop-filter:blur(20px) saturate(1.1); -webkit-backdrop-filter:blur(20px) saturate(1.1);
+    border-left:1px solid rgba(255,255,255,.55);
+    box-shadow:-22px 0 60px -22px rgba(20,16,8,.5);
+    transform:translateX(100%); transition:transform .38s cubic-bezier(.4,0,.2,1);
+  }
+  .side-panel.open { transform:translateX(0); }
+  .sp-head {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:26px 28px 18px; border-bottom:1px solid rgba(120,105,75,.18);
+  }
+  .sp-head h3 { font-size:19px; font-weight:900; letter-spacing:.06em; color:var(--ink); }
+  .sp-close {
+    width:38px; height:38px; border:0; border-radius:10px; cursor:pointer; flex:none;
+    background:rgba(120,105,75,.14); color:var(--ink); font-size:18px; font-weight:900; line-height:1;
+    transition:background .18s ease;
+  }
+  .sp-close:hover { background:rgba(120,105,75,.26); }
+  .sp-body { flex:1; overflow-y:auto; padding:6px 28px 18px; }
+  .sp-course { padding:18px 0; border-bottom:1px solid rgba(120,105,75,.14); }
+  .sp-course:last-child { border-bottom:0; }
+  .sp-name {
+    display:flex; align-items:center; gap:10px; width:100%; text-align:left;
+    background:transparent; border:0; cursor:pointer; padding:0 0 12px;
+    font-family:inherit; font-weight:900; font-size:17px; color:var(--ink);
+    transition:color .15s ease;
+  }
+  .sp-name::before {
+    content:""; width:6px; height:1.05em; border-radius:2px; background:var(--yellow); flex:none;
+  }
+  .sp-name:hover { color:#9a7700; }
+  .sp-course.cur .sp-name { color:#9a7700; }
+  .sp-classes { display:flex; flex-direction:column; gap:8px; padding-left:16px; }
+  .sp-class {
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    background:rgba(255,255,255,.66); border:1px solid rgba(120,105,75,.2); border-radius:11px;
+    padding:12px 15px; cursor:pointer; font-family:inherit; font-weight:800; font-size:15px; color:#3a342a;
+    transition:background .16s ease, border-color .16s ease;
+  }
+  .sp-class:hover { background:#fff; border-color:var(--yellow); }
+  .sp-class .go { color:#9a7700; font-weight:900; }
+  .sp-soon { padding-left:16px; color:var(--muted); font-weight:700; font-size:14px; }
+  .sp-foot { padding:18px 28px 26px; border-top:1px solid rgba(120,105,75,.18); }
+  .sp-pay {
+    display:block; text-align:center; text-decoration:none;
+    background:var(--yellow); color:var(--ink); border-radius:999px;
+    font-family:inherit; font-weight:900; font-size:16px; padding:16px;
+    box-shadow:0 10px 24px -10px rgba(70,52,24,.5);
+    transition:filter .16s ease, transform .16s ease;
+  }
+  .sp-pay:hover { filter:brightness(1.03); transform:translateY(-1px); }
+
+  /* 手機版隱藏電腦側邊欄（手機已有自己的導覽列與底部報名列） */
+  html.mobv .side-tab, html.mobv .side-scrim, html.mobv .side-panel { display:none !important; }
+
+  /* —— 底部固定報名列（手機版） —— */
+  .mobile-cta { display:none; }
+  html.mobv .mobile-cta {
+    display:flex; align-items:center; gap:12px; text-decoration:none;
+    position:fixed; left:0; right:0; bottom:0; z-index:33;
+    padding:11px 16px calc(11px + env(safe-area-inset-bottom));
+    background:rgba(236,229,216,.94);
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    border-top:1px solid rgba(120,105,75,.22);
+    box-shadow:0 -10px 26px -16px rgba(70,52,24,.55);
+  }
+  .mobile-cta .cta-info { flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
+  .mobile-cta .cta-label {
+    font-size:11.5px; font-weight:800; color:#6a5f49; letter-spacing:.02em;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .mobile-cta .cta-price { font-size:16px; font-weight:900; color:var(--ink); line-height:1.1; white-space:nowrap; }
+  .mobile-cta .cta-price .amt { white-space:nowrap; }
+  .mobile-cta .cta-price del { color:var(--muted); font-weight:700; font-size:12px; margin-right:7px; }
+  .mobile-cta .cta-btn {
+    flex:none; display:inline-flex; align-items:center; gap:6px;
+    background:var(--ink); color:#fff; border-radius:999px;
+    font-weight:900; font-size:15px; padding:14px 22px;
+    box-shadow:0 6px 16px -6px rgba(0,0,0,.45);
+  }
+  .mobile-cta .cta-btn::after { content:"→"; }
+  .mobile-cta:active .cta-btn { background:#000; }
+  /* 已選班別時改用品牌黃，強化「就是這個價，立即報名」 */
+  html.mobv .mobile-cta.is-class .cta-btn { background:var(--yellow); color:var(--ink); }
+  html.mobv .mobile-cta.is-class:active .cta-btn { filter:brightness(.95); }
+
+  /* 留出底部報名列的高度，避免遮住內容 */
+  html.mobv .page { padding-bottom:96px; }
 
   /* ===== forced mobile preview (#mobpv) — 390px column on a dark surround ===== */
   html.pv { background:#34322c; }
@@ -802,6 +995,6 @@
   <script type="text/babel" src="tweaks-panel.jsx"></script>
   <script type="text/babel" src="doodle-hero.jsx?v=2"></script>
   <script type="text/babel" src="meme-hero.jsx?v=4"></script>
-  <script type="text/babel" src="app.jsx?v=68"></script>
+  <script type="text/babel" src="app.jsx?v=74"></script>
 </body>
 </html>

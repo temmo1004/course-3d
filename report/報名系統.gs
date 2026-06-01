@@ -42,13 +42,29 @@ var PAYMENT_URL       = "https://你的付款連結（請替換）";
 var PAY_DEADLINE_DAYS = 3;      // 繳費期限：成班通知後 N 天內
 var CC_OWNER          = true;   // 成班付款通知是否同時副本一份給老師
 
+/*========= 寄信監控設定 =========*/
+var MAIL_LOG_SHEET = "寄信紀錄";  // 記錄每封信的寄送結果（成功／失敗／額度不足）
+var LOW_QUOTA_WARN = 10;         // 當日剩餘寄信額度低於此值時，寄一封提醒給老師（每天一次）
+
 /*========= 試算表選單（可手動重建 / 補寄）=========*/
 function onOpen(){
   SpreadsheetApp.getUi()
     .createMenu("報名系統")
     .addItem("重建總覽表", "rebuildSummary")
     .addItem("補寄所有已成班的付款通知", "sendAllPendingNotices")
+    .addItem("查看今日剩餘寄信額度", "checkMailQuota")
     .addToUi();
+}
+
+// 顯示今日 Gmail 剩餘寄信額度（一般帳號每天約 100 封）
+function checkMailQuota(){
+  var left;
+  try{ left = MailApp.getRemainingDailyQuota(); }
+  catch(e){ SpreadsheetApp.getUi().alert("無法取得額度：" + e); return; }
+  SpreadsheetApp.getUi().alert(
+    "今日剩餘寄信額度：" + left + " 封\n\n" +
+    "（一般 Gmail 每天上限約 100 封，於美國太平洋時間午夜、約台灣下午 3～4 點重置。" +
+    "額度為 0 時，當天通知信與付款信會暫停寄送，只記錄在「" + MAIL_LOG_SHEET + "」分頁。）");
 }
 
 /*========= Web 入口 =========*/
@@ -80,6 +96,7 @@ function doPost(e){
     appendRow(b, qty);
     rebuildSummary();
     notifyOwner(b, qty);
+    sendSignupConfirmation(b, qty);   // 報名當下立即寄確認信給報名者
     maybeSendPaymentNotices(b);   // 若此筆讓該班成班（或已成班）→ 自動寄付款通知
     return json({ ok:true });
   }catch(err){
@@ -305,22 +322,104 @@ function styleSummary(sh, meta){
   sh.setFrozenRows(2);
 }
 
+/*========= 寄信：額度檢查 + 失敗記錄 =========*/
+// 取得「寄信紀錄」工作表（沒有就建立）
+function mailLogSheet(){
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName(MAIL_LOG_SHEET);
+  if(!sh){
+    sh = ss.insertSheet(MAIL_LOG_SHEET);
+    sh.appendRow(["時間","類型","收件人","主旨","狀態","備註（剩餘額度／錯誤）"]);
+    sh.setFrozenRows(1);
+    sh.setColumnWidth(1,150); sh.setColumnWidth(4,260); sh.setColumnWidth(6,260);
+  }
+  return sh;
+}
+function logMail(type, to, subj, status, detail){
+  try{
+    mailLogSheet().appendRow([new Date(), type||"", to||"", subj||"", status||"", String(detail==null?"":detail)]);
+  }catch(e){ /* 連記錄都失敗就放棄，不影響報名 */ }
+}
+
+// 中央寄信函式：寄信前先檢查當日剩餘額度，不足就「只記錄、不寄」；
+// 寄送成功/失敗一律寫入「寄信紀錄」。need 由收件人＋副本數推算。
+function safeSendEmail(type, to, subj, body, opts){
+  opts = opts || {};
+  var need = 1 + (opts.cc ? String(opts.cc).split(",").length : 0);
+  var remaining = null;
+  try{ remaining = MailApp.getRemainingDailyQuota(); }catch(e){ remaining = null; }
+
+  // 額度不足 → 不嘗試寄，只記錄（報名流程不受影響）
+  if(remaining !== null && remaining < need){
+    logMail(type, to, subj, "未寄出（額度不足）", "今日剩餘 " + remaining + " 封，需 " + need + " 封");
+    return false;
+  }
+  try{
+    MailApp.sendEmail(to, subj, body, opts);
+    var left = (remaining === null) ? null : (remaining - need);
+    logMail(type, to, subj, "已寄出", left === null ? "" : ("寄後剩約 " + left + " 封"));
+    if(left !== null && left <= LOW_QUOTA_WARN) maybeWarnLowQuota(left);
+    return true;
+  }catch(e){
+    logMail(type, to, subj, "寄信失敗", String(e));
+    return false;
+  }
+}
+
+// 當日剩餘額度偏低時，寄一封提醒給老師（用 ScriptProperties 確保每天只提醒一次）
+function maybeWarnLowQuota(left){
+  try{
+    var props = PropertiesService.getScriptProperties();
+    var today = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd");
+    if(props.getProperty("lowQuotaWarned") === today) return;   // 今天已提醒過
+    if(left <= 0){ props.setProperty("lowQuotaWarned", today); return; }  // 沒額度也無法寄提醒
+    MailApp.sendEmail(OWNER_EMAIL,
+      "【系統提醒】今日寄信額度即將用完（剩約 " + left + " 封）",
+      "報名系統今天的 Gmail 寄信額度快用完了（剩約 " + left + " 封）。\n\n" +
+      "額度用完後，當天的「新報名通知」與「成班付款通知」都會暫停寄送，" +
+      "改為只記錄在試算表的「" + MAIL_LOG_SHEET + "」分頁，明天額度重置後即可恢復。\n\n" +
+      "（一般 Gmail 每天上限約 100 封。若常常不夠，建議改用 Google Workspace 帳號或專業寄信服務。）");
+    props.setProperty("lowQuotaWarned", today);
+  }catch(e){ /* 提醒失敗就算了 */ }
+}
+
 /*========= 通知信 =========*/
 function notifyOwner(b, qty){
-  try{
-    var subj = "【新報名】" + (b.class_name||"") + "／" + (b.date||"") + " " + (b.slot||"");
-    var body =
-      "系列：" + (b.course_series||"") + "\n" +
-      "班別：" + (b.class_name||"") + "\n" +
-      "上課時間：" + (b.when||"") + "\n" +
-      "報名人數：" + qty + "\n" +
-      "金額：" + (b.price||"") + "\n" +
-      "──────────────\n" +
-      "姓名：" + (b.name||"") + "\n" +
-      "電話：" + (b.phone||"") + "\n" +
-      "Email：" + (b.email||"");
-    MailApp.sendEmail(OWNER_EMAIL, subj, body);
-  }catch(e){ /* 寄信失敗不影響報名寫入 */ }
+  var subj = "【新報名】" + (b.class_name||"") + "／" + (b.date||"") + " " + (b.slot||"");
+  var body =
+    "系列：" + (b.course_series||"") + "\n" +
+    "班別：" + (b.class_name||"") + "\n" +
+    "上課時間：" + (b.when||"") + "\n" +
+    "報名人數：" + qty + "\n" +
+    "金額：" + (b.price||"") + "\n" +
+    "──────────────\n" +
+    "姓名：" + (b.name||"") + "\n" +
+    "電話：" + (b.phone||"") + "\n" +
+    "Email：" + (b.email||"");
+  safeSendEmail("新報名通知", OWNER_EMAIL, subj, body);
+}
+
+/*========= 報名成功確認信（報名當下立即寄給報名者）=========*/
+function sendSignupConfirmation(b, qty){
+  var email = String(b.email||"").trim();
+  if(!email) return;   // 沒留 Email 就不寄（會記錄在「寄信紀錄」由 safeSendEmail 處理）
+  var subj = "【報名成功】" + (b.class_name||"") + "／" + (b.date||"") + " " + (b.slot||"");
+  var body =
+    (b.name||"") + " 您好：\n\n" +
+    "我們已收到您的報名，以下是您填寫的資訊，請核對：\n\n" +
+    "──── 報名資訊 ────\n" +
+    "系列：" + (b.course_series||"") + "\n" +
+    "班別：" + (b.class_name||"") + "\n" +
+    "上課時間：" + (b.when||"") + "\n" +
+    "報名人數：" + qty + " 人\n" +
+    "金額：" + (b.price||"") + "\n\n" +
+    "──── 接下來 ────\n" +
+    "本課程採「達開班人數才開課」制。當您報名的時段達到開班人數、確定開課後，\n" +
+    "我們會再寄一封「成班通知」給您，並附上繳費方式與期限。\n\n" +
+    "在那之前無須先繳費，只要留意後續通知即可。\n\n" +
+    "如資訊有誤或有任何問題，歡迎直接回覆此信，或來信 " + OWNER_EMAIL + "。\n" +
+    "感謝您的報名，期待與您相見！";
+  safeSendEmail("報名成功確認", email, subj, body);
 }
 
 /*========= 成班 → 自動付款通知 =========*/
@@ -412,9 +511,9 @@ function sendPaymentEmail(r){
 
     var opts = {};
     if(CC_OWNER) opts.cc = OWNER_EMAIL;   // 同時寄一份給老師
-    MailApp.sendEmail(email, subj, body, opts);
-    return true;
+    return safeSendEmail("成班付款通知", email, subj, body, opts);
   }catch(e){
+    logMail("成班付款通知", String(r[10]||""), "", "寄信失敗", String(e));
     return false;
   }
 }

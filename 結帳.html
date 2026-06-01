@@ -92,7 +92,7 @@
   /* 被其他班「先達開班人數」鎖定的時段：用中性灰，與「額滿」區別 */
   .seg button.locked .full-tag { background:#8a8275; }
   .seg button.full .sub { display:none; }
-  /* 尚未開放的時段（例：6/12 前的晚上班）：灰化、不可選 */
+  /* 尚未開放的時段（例：6/12 前的晚班、非開課日）：灰化、不可選 */
   .seg button.blocked { cursor:not-allowed; opacity:.5; background:#efe9dc; }
   .seg button.blocked:hover { border-color:var(--line); }
   .seg button.blocked .seat { display:none; }
@@ -104,6 +104,19 @@
   .seg button .seat.show { display:block; }
   .seg button .seat.few { color:#b23b3b; }
   .seg button.full .seat { display:none; }
+
+  /* 上課日期：可點選日期卡片（取代原生下拉，行動裝置不會有下拉選單溢出畫面的問題）*/
+  .dateseg { display:grid; grid-template-columns:repeat(auto-fill, minmax(84px,1fr)); gap:10px; }
+  .dateseg button {
+    font-family:inherit; font-size:17px; font-weight:800; color:var(--ink); text-align:center;
+    background:#fbf8f0; border:1.5px solid var(--line); border-radius:10px;
+    padding:11px 6px; cursor:pointer; transition:border-color .15s, background .15s, transform .1s;
+  }
+  .dateseg button .dw { display:block; font-size:12px; font-weight:700; color:var(--muted); margin-top:3px; }
+  .dateseg button:hover { border-color:var(--ink); }
+  .dateseg button.on { background:var(--yellow); border-color:var(--ink); }
+  .dateseg button.on .dw { color:#6a5a1a; }
+  .dateseg button:active { transform:scale(.97); }
 
   /* ===== order summary ===== */
   .summary {
@@ -196,16 +209,17 @@
       <div style="margin-top:40px"><span class="eyebrow">上課時間</span></div>
       <div class="field">
         <label for="date">上課日期</label>
-        <input id="date" type="date" min="2026-06-01" max="2026-06-30">
-        <p class="note">報名期間 6/1–6/30：6/1–6/11 僅開下午班，6/12 起加開晚上班。實際開課以達標並另行 email 確認為準。</p>
+        <input type="hidden" id="date">
+        <div class="dateseg" id="dateseg"></div>
+        <p class="note">點選可報名的上課日：6/11 前為週五、六、日；6/12 起為週三、五、六、日。實際開課以達標並另行 email 確認為準。</p>
       </div>
       <div class="field">
         <label>時段</label>
         <div class="seg" id="slot">
-          <button type="button" data-slot="早上">早上<span class="sub">09:00–12:00</span><span class="seat"></span><span class="full-tag">已額滿</span></button>
-          <button type="button" data-slot="下午">下午<span class="sub">13:30–16:30</span><span class="seat"></span><span class="full-tag">已額滿</span></button>
-          <button type="button" data-slot="晚上">晚上<span class="sub">18:30–21:30</span><span class="seat"></span><span class="full-tag">已額滿</span></button>
-          <button type="button" data-slot="深夜">深夜<span class="sub">00:00–03:30</span><span class="seat"></span><span class="full-tag">已額滿</span></button>
+          <button type="button" data-slot="早">早班<span class="sub">09:00–12:00</span><span class="seat"></span><span class="full-tag">已額滿</span></button>
+          <button type="button" data-slot="中">中班<span class="sub">13:30–16:30</span><span class="seat"></span><span class="full-tag">已額滿</span></button>
+          <button type="button" data-slot="晚">晚班<span class="sub">18:30–21:30</span><span class="seat"></span><span class="full-tag">已額滿</span></button>
+          <button type="button" data-slot="夜">夜班<span class="sub">20:00–23:00</span><span class="seat"></span><span class="full-tag">已額滿</span></button>
         </div>
 
       <div style="margin-top:40px"><span class="eyebrow">報名資料</span></div>
@@ -311,61 +325,95 @@
     var qtyLineEl = document.getElementById("qtyline");
     var totalEl   = document.getElementById("total");
     var dateEl    = document.getElementById("date");
+    var dateSeg   = document.getElementById("dateseg");
     var slotWrap  = document.getElementById("slot");
     var whenEl    = document.getElementById("sum-when");
     var qty = 1;
     var slot = "";
 
-    // 日期限制：今天之後，預設帶到一週後
-    (function(){
-      var t = new Date(); t.setDate(t.getDate()+1);
-      dateEl.min = t.toISOString().slice(0,10);
-    })();
+    // —— 以「下拉選單」列出可報名上課日（不用日曆，不能上的日子直接不出現）——
+    var WD_NAMES = ["日","一","二","三","四","五","六"];
+    function pad2(n){ return (n < 10 ? "0" : "") + n; }
+    function ymd(dt){ return dt.getFullYear() + "-" + pad2(dt.getMonth()+1) + "-" + pad2(dt.getDate()); }
+    function fmtDateLabel(ds){
+      var wd = new Date(ds + "T00:00:00").getDay();
+      var p = ds.split("-");
+      return (+p[1]) + "/" + (+p[2]) + "（週" + WD_NAMES[wd] + "）";
+    }
+    function buildDateOptions(){
+      var now = new Date();
+      var startDt = new Date(now.getFullYear(), now.getMonth(), now.getDate()+1);  // 今天之後
+      var start = ymd(startDt);
+      var html = "";
+      var d = new Date(REG_START + "T00:00:00");
+      var end = new Date(REG_END + "T00:00:00");
+      for(; d <= end; d.setDate(d.getDate()+1)){
+        var ds = ymd(d);
+        if(ds < start) continue;            // 已過的日期不列
+        if(!allowedWeekday(ds)) continue;   // 非開課星期幾不列
+        var p = ds.split("-");
+        var wd = new Date(ds + "T00:00:00").getDay();
+        html += '<button type="button" data-date="' + ds + '">' + (+p[1]) + '/' + (+p[2]) +
+                '<span class="dw">週' + WD_NAMES[wd] + '</span></button>';
+      }
+      dateSeg.innerHTML = html;
+    }
 
     function whenText(){
       if(!dateEl.value && !slot) return "未選擇上課時間";
-      var d = dateEl.value ? dateEl.value.replace(/-/g,"/") : "（未選日期）";
+      var d = dateEl.value ? fmtDateLabel(dateEl.value) : "（未選日期）";
       return d + "・" + (slot || "（未選時段）");
     }
 
     // —— 開放報名規則（依「上課日期」判定，YYYY-MM-DD 字串可直接比較）——
-    //   6/1–6/11：只開「下午」班
-    //   6/12–6/30：開「下午」「晚上」班
-    //   其他日期：全部關閉
-    //   「早上」班全程不開放
-    var REG_START         = "2026-06-01";   // 報名期間起（含）
-    var REG_END           = "2026-06-30";   // 報名期間迄（含）
-    var EVENING_OPEN_FROM = "2026-06-12";   // 晚上班自此日（含）起開放
+    //   報名期間 6/1–6/30
+    //   6/11 前（含）：僅週五、六、日 → 早、中班
+    //   6/12 起（含）：週三、五、六、日 → 早、中、晚班
+    //   酒鬼班：夜班（於允許的星期幾、報名期間內皆可）
+    var REG_START   = "2026-06-01";   // 報名期間起（含）
+    var REG_END     = "2026-06-30";   // 報名期間迄（含）
+    var EXPAND_FROM = "2026-06-12";   // 自此日（含）起加開「週三」與「晚班」
 
-    // 酒鬼班專屬：取消早上班、加開深夜班；其他班維持早上／下午／晚上
+    // 該日期的星期幾是否開課（0=日,1=一,…,6=六）
+    //   6/12 前：週五(5)六(6)日(0)；6/12 起：週三(3)五(5)六(6)日(0)
+    function allowedWeekday(dateStr){
+      if(!dateStr) return false;
+      var d = new Date(dateStr + "T00:00:00").getDay();
+      if(dateStr < EXPAND_FROM) return (d === 5 || d === 6 || d === 0);
+      return (d === 3 || d === 5 || d === 6 || d === 0);
+    }
+
+    // 酒鬼班：只開「夜」班；其他班：開「早／中／晚」（隱藏「夜」）
     function applyCourseSlots(){
       var isDrunk = courseSel.value === "drunk";
       [].forEach.call(slotWrap.children, function(b){
         var name = b.getAttribute("data-slot");
-        // 酒鬼班：隱藏早上、顯示深夜；其他班：顯示早上、隱藏深夜
-        var visible = isDrunk ? (name !== "早上") : (name !== "深夜");
+        var visible = isDrunk ? (name === "夜") : (name !== "夜");
         b.style.display = visible ? "" : "none";
         if(!visible && b.classList.contains("on")){ b.classList.remove("on"); slot = ""; }
       });
+      // 欄數隨可選時段調整（酒鬼班 1 欄、其他班 3 欄）
+      slotWrap.style.gridTemplateColumns = "repeat(" + (isDrunk ? 1 : 3) + ", 1fr)";
     }
 
     // 回傳該「時段」在該日期是否「未開放」（需灰化、不可選）
     function slotClosed(dateStr, slotName){
       if(!dateStr) return true;                                  // 未選日期 → 先灰化
       if(dateStr < REG_START || dateStr > REG_END) return true;  // 非報名期間
-      if(slotName === "早上") return true;                       // 早上班不開放
-      // 晚上／深夜班自 6/12（含）起開放
-      if(slotName === "晚上" || slotName === "深夜") return dateStr < EVENING_OPEN_FROM;
-      return false;                                              // 下午班：6/1–6/30 皆開
+      if(!allowedWeekday(dateStr)) return true;                  // 該星期幾不開課
+      if(slotName === "晚") return dateStr < EXPAND_FROM;        // 晚班自 6/12（含）起開放
+      return false;                                              // 早／中／夜：允許日皆開
     }
 
     // 灰化標籤文字：依原因給不同說明
     function closedTag(dateStr, slotName){
-      if(slotName === "早上") return "暫不開放";
       if(dateStr && (dateStr < REG_START || dateStr > REG_END)) return "未開放報名";
-      if(slotName === "晚上" || slotName === "深夜") return "6/12 起開放";
+      if(dateStr && !allowedWeekday(dateStr)) return "此日不開課";
+      if(slotName === "晚") return "6/12 起開放";
       return "未開放";
     }
+
+    buildDateOptions();   // 完成規則定義後，填入可選上課日下拉選單
 
     // 模擬名額：依日期＋時段偵測是否滿班（無後端，以確定性雜湊判定）
     function slotFull(dateStr, slotName){
@@ -477,6 +525,14 @@
       render();
     });
     dateEl.addEventListener("change", function(){ refreshSlots(); render(); });
+    // 點選日期卡片：更新隱藏 input 的值並連動時段與摘要
+    dateSeg.addEventListener("click", function(e){
+      var b = e.target.closest("button"); if(!b) return;
+      [].forEach.call(dateSeg.children, function(x){ x.classList.remove("on"); });
+      b.classList.add("on");
+      dateEl.value = b.getAttribute("data-date");
+      refreshSlots(); render();
+    });
 
     // auto-apply class from the homepage selection
     if (preset && LABEL[preset]) {
@@ -488,7 +544,7 @@
     courseSel.addEventListener("change", function(){
       noteEl.textContent = "已選擇「" + (LABEL[courseSel.value] || courseSel.value) + "」。";
       noteEl.classList.remove("applied");
-      applyCourseSlots();   // 換班別：更新可選時段（酒鬼班無早上、有深夜）
+      applyCourseSlots();   // 換班別：更新可選時段（酒鬼班為夜班，其他班為早／中／晚）
       applySlotFull();   // 換班別：依新班別重新判斷各時段是否被鎖定／剩餘名額
       render();
     });

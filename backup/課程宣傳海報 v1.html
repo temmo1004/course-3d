@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>404Table 課程宣傳海報 — A4 ×4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  :root{
+    --paper:#ece5d8;
+    --kraft:#c9ad7f;
+    --ink:#1f1d18;
+    --yellow:#F3D11E;
+    --red:#E5403A;
+    --muted:#8a7f6a;
+  }
+  html{ -webkit-text-size-adjust:100%; }
+  body{
+    font-family:"Noto Sans TC", sans-serif;
+    background:#3a352c;
+    color:var(--ink);
+    padding:34px 0;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ===== screen layout: stack the A4 pages ===== */
+  .sheets{ display:flex; flex-direction:column; align-items:center; gap:34px; }
+
+  .poster{
+    position:relative;
+    width:210mm; height:297mm;
+    background:var(--paper);
+    overflow:hidden;
+    box-shadow:0 24px 60px -20px rgba(0,0,0,.6);
+    /* subtle crumpled-paper grain from the brand asset */
+    background-image:
+      linear-gradient(rgba(236,229,216,.86), rgba(236,229,216,.86)),
+      url("assets/paper-white.webp");
+    background-size:cover; background-position:center;
+  }
+
+  /* inner padded frame */
+  .pg{ position:absolute; inset:0; padding:16mm 14mm 13mm; display:flex; flex-direction:column; }
+
+  /* ---- header strip ---- */
+  .head{ display:flex; align-items:center; justify-content:space-between; }
+  .brand{ display:flex; align-items:baseline; gap:8px; }
+  .brand .mark{ font-weight:900; font-size:20px; letter-spacing:.04em; }
+  .brand .mark b{ color:var(--red); }
+  .brand .sub{ font-size:11px; font-weight:700; color:var(--muted); letter-spacing:.18em; }
+  .series{
+    font-size:12px; font-weight:900; letter-spacing:.06em;
+    color:var(--ink); background:var(--yellow);
+    padding:6px 13px; border-radius:999px;
+    box-shadow:0 2px 0 rgba(0,0,0,.18);
+    transform:rotate(1.5deg);
+  }
+
+  /* ---- eyebrow tape ---- */
+  .tape{ margin:13mm 0 4mm; }
+  .tape img{ height:54px; width:auto; filter:drop-shadow(0 4px 7px rgba(0,0,0,.22)); transform:rotate(-2deg); }
+
+  /* ---- headline ---- */
+  .h1{
+    font-weight:900; font-size:43px; line-height:1.12; letter-spacing:-.01em;
+    text-wrap:balance;
+  }
+  .h1 .pop{ color:var(--red); }
+  .lead{ margin-top:7mm; font-size:16px; font-weight:500; line-height:1.7; color:#544e42; max-width:165mm; }
+
+  /* ---- hero before→after ---- */
+  .hero{
+    margin:8mm 0 0;
+    display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:6mm;
+  }
+  .chip{
+    position:relative; border-radius:16px; overflow:hidden;
+    aspect-ratio:1/1; display:flex; align-items:flex-end; justify-content:center;
+    box-shadow:0 10px 26px -12px rgba(0,0,0,.45);
+  }
+  .chip .cimg{ width:100%; height:100%; object-fit:contain; padding:9px; }
+  .chip .tag{
+    position:absolute; top:9px; left:9px;
+    font-size:12px; font-weight:900; letter-spacing:.08em;
+    padding:4px 10px; border-radius:999px;
+  }
+  .chip.before{ background:#fbf8f1; border:2.5px dashed #c4b69a; }
+  .chip.before .tag{ background:var(--ink); color:#fff; }
+  .chip.after{ background:radial-gradient(120% 120% at 50% 18%, #fff 0%, #efe9dc 100%); border:2.5px solid var(--ink); }
+  .chip.after .tag{ background:var(--red); color:#fff; }
+  .arrow{
+    font-size:38px; font-weight:900; color:var(--ink);
+    display:flex; flex-direction:column; align-items:center; gap:3px; line-height:1;
+  }
+  .arrow small{ font-size:11px; font-weight:700; letter-spacing:.12em; color:var(--muted); }
+
+  /* ---- steps ---- */
+  .steps{ margin-top:9mm; display:grid; grid-template-columns:repeat(3,1fr); gap:5mm; }
+  .step{ position:relative; padding-left:0; }
+  .step .n{
+    width:30px; height:30px; border-radius:50%;
+    background:var(--ink); color:var(--yellow);
+    display:flex; align-items:center; justify-content:center;
+    font-weight:900; font-size:16px; margin-bottom:8px;
+  }
+  .step .st{ font-weight:900; font-size:16px; margin-bottom:3px; }
+  .step .sd{ font-size:12.5px; font-weight:500; line-height:1.55; color:#5a5446; }
+
+  /* ---- perk callout ---- */
+  .perk{
+    margin-top:7mm; display:flex; align-items:center; gap:11px;
+    background:var(--yellow); color:var(--ink);
+    padding:11px 16px; border-radius:13px; font-weight:700; font-size:14.5px;
+    box-shadow:0 5px 0 rgba(0,0,0,.14); transform:rotate(-.4deg);
+  }
+  .perk .pi{ font-weight:900; font-size:18px; }
+
+  /* ---- spacer pushes footer down ---- */
+  .spacer{ flex:1 1 auto; min-height:4mm; }
+
+  /* ---- price + facts + qr footer ---- */
+  .foot{ display:grid; grid-template-columns:1.15fr 1fr auto; gap:6mm; align-items:stretch; }
+  .price{
+    background:var(--ink); color:#fff; border-radius:16px; padding:14px 18px;
+    display:flex; flex-direction:column; justify-content:center;
+  }
+  .price .ph{ font-size:11.5px; font-weight:700; letter-spacing:.18em; color:#e7d9b8; }
+  .price .orig{ font-size:15px; color:#b9b1a2; text-decoration:line-through; margin-top:3px; }
+  .price .now{ display:flex; align-items:baseline; gap:4px; margin-top:1px; }
+  .price .now .cur{ font-size:18px; font-weight:900; color:var(--yellow); }
+  .price .now .amt{ font-size:46px; font-weight:900; line-height:.95; color:var(--yellow); letter-spacing:-.02em; }
+  .price .inc{ font-size:11.5px; font-weight:500; color:#cfc6b5; margin-top:5px; }
+
+  .facts{ display:flex; flex-direction:column; gap:7px; justify-content:center; }
+  .fact{ display:flex; gap:8px; align-items:baseline; font-size:13px; }
+  .fact .fl{ font-weight:900; color:var(--ink); white-space:nowrap; }
+  .fact .fv{ font-weight:500; color:#5a5446; line-height:1.4; }
+
+  .qr{ display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .qr image-slot{
+    width:104px; height:104px; border-radius:10px;
+    border:2.5px solid var(--ink);
+  }
+  .qr .qc{ font-size:11px; font-weight:900; letter-spacing:.04em; color:var(--ink); text-align:center; }
+
+  .addr{
+    margin-top:6mm; border-top:2px solid rgba(31,29,24,.22); padding-top:7px;
+    display:flex; align-items:center; gap:9px; font-size:12.5px; font-weight:700; color:#4b4537;
+  }
+  .addr .pin{ color:var(--red); font-weight:900; }
+  .addr .room{ margin-left:auto; font-weight:900; color:var(--ink); }
+
+  /* =================== THEME: MEME (galaxy) =================== */
+  .poster.galaxy{
+    background-image:linear-gradient(rgba(13,10,28,.5), rgba(13,10,28,.74)), url("assets/meme-bg-galaxy.webp");
+    color:#fff;
+  }
+  .galaxy .brand .mark{ color:#fff; }
+  .galaxy .brand .sub{ color:#c9c2e6; }
+  .galaxy .h1{ color:#fff; text-shadow:0 3px 14px rgba(0,0,0,.5); }
+  .galaxy .lead{ color:#e4e0f3; }
+  .galaxy .step .st{ color:#fff; }
+  .galaxy .step .sd{ color:#cfc9e6; }
+  .galaxy .step .n{ background:#fff; color:#1a1430; }
+  .galaxy .chip.before{ background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.5); }
+  .galaxy .chip.after{ background:radial-gradient(120% 120% at 50% 18%, rgba(255,255,255,.22), rgba(255,255,255,.04)); border-color:#fff; }
+  .galaxy .arrow{ color:#fff; }
+  .galaxy .arrow small{ color:#c9c2e6; }
+  .galaxy .facts .fl{ color:#fff; }
+  .galaxy .facts .fv{ color:#d7d2ec; }
+  .galaxy .addr{ border-top-color:rgba(255,255,255,.28); color:#e4e0f3; }
+  .galaxy .addr .room{ color:#fff; }
+  .galaxy .qr image-slot{ border-color:#fff; background:#fff; }
+  .galaxy .qr .qc{ color:#fff; }
+
+  /* =================== THEME: DRUNK (bar) =================== */
+  .poster.bar{
+    background-image:linear-gradient(rgba(28,17,8,.93), rgba(20,12,6,.95));
+    background-color:#1c1108;
+    color:#f4e7d2;
+  }
+  .bar .brand .mark{ color:#f4e7d2; }
+  .bar .brand .sub{ color:#b89a6f; }
+  .bar .series{ background:#d9a441; color:#1c1108; }
+  .bar .h1{ color:#fff; }
+  .bar .h1 .pop{ color:#e8b54b; }
+  .bar .lead{ color:#dcc8a6; }
+  .bar .step .st{ color:#fff; }
+  .bar .step .sd{ color:#c8b08a; }
+  .bar .step .n{ background:#d9a441; color:#1c1108; }
+  .bar .chip.before{ background:rgba(255,255,255,.06); border-color:rgba(217,164,65,.55); }
+  .bar .chip.after{ background:radial-gradient(120% 120% at 50% 18%, rgba(255,255,255,.14), rgba(255,255,255,.03)); border-color:#d9a441; }
+  .bar .chip.before .tag{ background:#d9a441; color:#1c1108; }
+  .bar .chip.after .tag{ background:#fff; color:#1c1108; }
+  .bar .arrow{ color:#e8b54b; }
+  .bar .arrow small{ color:#b89a6f; }
+  .bar .price{ background:#000; }
+  .bar .price .ph{ color:#e8c98a; }
+  .bar .price .orig{ color:#9c8a6a; }
+  .bar .price .now .cur,.bar .price .now .amt{ color:#e8b54b; }
+  .bar .perk{ background:#d9a441; }
+  .bar .facts .fl{ color:#fff; }
+  .bar .facts .fv{ color:#cdb791; }
+  .bar .addr{ border-top-color:rgba(217,164,65,.3); color:#dcc8a6; }
+  .bar .addr .room{ color:#fff; }
+  .bar .qr image-slot{ border-color:#d9a441; background:#fff; }
+  .bar .qr .qc{ color:#f4e7d2; }
+
+  /* =================== PRINT =================== */
+  @page{ size:A4 portrait; margin:0; }
+  @media print{
+    body{ background:#fff; padding:0; }
+    .sheets{ gap:0; }
+    .poster{ box-shadow:none; break-after:page; page-break-after:always; }
+    .poster:last-child{ break-after:auto; page-break-after:auto; }
+    *{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  }
+</style>
+</head>
+<body>
+<div class="sheets">
+
+  <!-- ============================ 1 · 親子班 ============================ -->
+  <section class="poster theme-family" data-screen-label="親子班">
+    <div class="pg">
+      <div class="head">
+        <div class="brand"><span class="mark">404<b>Table</b></span><span class="sub">3D 列印創作教室</span></div>
+        <div class="series">塗鴉變 3D 模型</div>
+      </div>
+
+      <div class="tape"><img src="assets/tape-family.webp" alt="親子班"></div>
+      <h1 class="h1">與小孩一起塗鴉，<br>變成能<span class="pop">收藏的 3D 公仔</span></h1>
+      <p class="lead">看到網路上好多可愛公仔，有沒有想過孩子的塗鴉也能變成公仔？來當一段時間的小孩，一起留下特別的親子回憶吧！</p>
+
+      <div class="hero">
+        <div class="chip before"><span class="tag">塗鴉</span><img class="cimg" src="assets/char-family-doodle.webp" alt="孩子的塗鴉怪獸"></div>
+        <div class="arrow">→<small>AI ＋ 3D 列印</small></div>
+        <div class="chip after"><span class="tag">3D 公仔</span><img class="cimg" src="assets/char-family-3d.webp" alt="3D 列印怪獸公仔"></div>
+      </div>
+
+      <div class="steps">
+        <div class="step"><div class="n">1</div><div class="st">一起塗鴉發想</div><div class="sd">和孩子在紙上揮灑想像，再導入電腦用 AI 延伸更多可能。</div></div>
+        <div class="step"><div class="n">2</div><div class="st">AI 建模成形</div><div class="sd">把平面塗鴉轉成立體模型，快速生成孩子作品的 3D 模型。</div></div>
+        <div class="step"><div class="n">3</div><div class="st">列印帶回家</div><div class="sd">從螢幕裡拿出來，列印成握在手上的寶貴回憶。</div></div>
+      </div>
+
+      <div class="perk"><span class="pi">★</span><span>孩子主導、家長協助，節奏緩慢；6 歲以上就能自己動手做。</span></div>
+
+      <div class="spacer"></div>
+
+      <div class="foot">
+        <div class="price">
+          <div class="ph">限時開幕特惠</div>
+          <div class="orig">原價 3,000 元</div>
+          <div class="now"><span class="cur">NT$</span><span class="amt">1,500</span></div>
+          <div class="inc">含材料費・10 人開班</div>
+        </div>
+        <div class="facts">
+          <div class="fact"><span class="fl">上課時間</span><span class="fv">3–3.5 小時</span></div>
+          <div class="fact"><span class="fl">適合對象</span><span class="fv">6 歲以上孩子與家長</span></div>
+          <div class="fact"><span class="fl">帶 走</span><span class="fv">原創 STL 檔＋列印公仔＋練習小模型</span></div>
+        </div>
+        <div class="qr">
+          <image-slot id="qr-family" shape="rounded" radius="8" placeholder="報名 QR"></image-slot>
+          <div class="qc">掃描立即報名</div>
+        </div>
+      </div>
+
+      <div class="addr"><span class="pin">◎</span><span>台北市中山區長安東路二段 31 號 4 樓之 5</span><span class="room">404Table 教室</span></div>
+    </div>
+  </section>
+
+  <!-- ============================ 2 · 成人班 ============================ -->
+  <section class="poster theme-adult" data-screen-label="成人班">
+    <div class="pg">
+      <div class="head">
+        <div class="brand"><span class="mark">404<b>Table</b></span><span class="sub">3D 列印創作教室</span></div>
+        <div class="series">塗鴉變 3D 模型</div>
+      </div>
+
+      <div class="tape"><img src="assets/tape-adult.webp" alt="成人班"></div>
+      <h1 class="h1">把你的草圖，<br>變成<span class="pop">只屬於你的公仔</span></h1>
+      <p class="lead">腦中有很多想法卻苦於軟體太難？這堂課不要求你先成為建模高手，而是用 AI 工作流，把塗鴉、草圖或既有作品變成一件列印公仔。</p>
+
+      <div class="hero">
+        <div class="chip before"><span class="tag">塗鴉</span><img class="cimg" src="assets/char-adult-doodle.webp" alt="你的塗鴉角色"></div>
+        <div class="arrow">→<small>AI ＋ 3D 列印</small></div>
+        <div class="chip after"><span class="tag">3D 公仔</span><img class="cimg" src="assets/char-adult-3d.webp" alt="3D 列印角色公仔"></div>
+      </div>
+
+      <div class="steps">
+        <div class="step"><div class="n">1</div><div class="st">發揮創意</div><div class="sd">把腦中想法揮灑在畫布並導入電腦，用 AI 快速疊代探索可能。</div></div>
+        <div class="step"><div class="n">2</div><div class="st">AI 建模</div><div class="sd">用 AI 把平面塗鴉轉為立體，快速生成你作品的 3D 模型。</div></div>
+        <div class="step"><div class="n">3</div><div class="st">列印公仔</div><div class="sd">將作品從螢幕中拿出來，列印成握在手中的實體。</div></div>
+      </div>
+
+      <div class="perk"><span class="pi">★</span><span>更多流程展示、較快的節奏，體驗設計師視角的 AI 創作工具 VIZCOM。</span></div>
+
+      <div class="spacer"></div>
+
+      <div class="foot">
+        <div class="price">
+          <div class="ph">限時開幕特惠</div>
+          <div class="orig">原價 3,500 元</div>
+          <div class="now"><span class="cur">NT$</span><span class="amt">1,600</span></div>
+          <div class="inc">含材料費・10 人開班</div>
+        </div>
+        <div class="facts">
+          <div class="fact"><span class="fl">上課時間</span><span class="fv">3–3.5 小時</span></div>
+          <div class="fact"><span class="fl">需 準 備</span><span class="fv">筆電、Gmail 帳號、慣用創作媒材</span></div>
+          <div class="fact"><span class="fl">硬體需求</span><span class="fv">Windows 10+ 或 macOS 11+</span></div>
+        </div>
+        <div class="qr">
+          <image-slot id="qr-adult" shape="rounded" radius="8" placeholder="報名 QR"></image-slot>
+          <div class="qc">掃描立即報名</div>
+        </div>
+      </div>
+
+      <div class="addr"><span class="pin">◎</span><span>台北市中山區長安東路二段 31 號 4 樓之 5</span><span class="room">404Table 教室</span></div>
+    </div>
+  </section>
+
+  <!-- ============================ 3 · 健康乖寶寶班 ============================ -->
+  <section class="poster galaxy theme-good" data-screen-label="健康乖寶寶班">
+    <div class="pg">
+      <div class="head">
+        <div class="brand"><span class="mark">404<b>Table</b></span><span class="sub">3D 列印創作教室</span></div>
+        <div class="series">迷因變 3D 模型</div>
+      </div>
+
+      <div class="tape" style="margin-top:13mm;">
+        <span style="display:inline-block;background:#fff;color:#1a1430;font-weight:900;font-size:17px;letter-spacing:.04em;padding:8px 18px;border-radius:999px;transform:rotate(-2deg);box-shadow:0 4px 10px rgba(0,0,0,.35);">健康乖寶寶班・酒精濃度 0%</span>
+      </div>
+      <h1 class="h1">不喝酒，<br>也能ㄎㄧㄤ出<span style="color:#ffd84a;">迷因公仔</span></h1>
+      <p class="lead">每天看一堆網路迷因，卻很少看到市售的迷因公仔。想讓你每天看的迷因走進現實嗎？來吧，我們一起製造一堆可愛小廢物！</p>
+
+      <div class="hero">
+        <div class="chip before"><span class="tag">迷因</span><img class="cimg" src="assets/meme-cat.webp" alt="網路迷因貓" style="object-position:left center;"></div>
+        <div class="arrow">→<small>AI ＋ 3D 列印</small></div>
+        <div class="chip after"><span class="tag">3D 公仔</span><img class="cimg" src="assets/meme-cat.webp" alt="3D 列印迷因貓公仔" style="object-position:left center;"></div>
+      </div>
+
+      <div class="steps">
+        <div class="step"><div class="n">1</div><div class="st">迷因檢討會</div><div class="sd">與同班同學交流珍藏梗圖，組成你的超級迷因大軍，挑出最對味的。</div></div>
+        <div class="step"><div class="n">2</div><div class="st">AI 3D 煉成</div><div class="sd">把對味的梗圖調整細節或二創，由平面轉為立體模型。</div></div>
+        <div class="step"><div class="n">3</div><div class="st">列印公仔</div><div class="sd">「欸，這個可以，這個骨力！」把小廢物列印出來。</div></div>
+      </div>
+
+      <div class="perk"><span class="pi">🥛</span><span>喝酒不能解決問題，喝牛奶也不行 —— 隨班附贈一人一瓶牛奶！</span></div>
+
+      <div class="spacer"></div>
+
+      <div class="foot">
+        <div class="price">
+          <div class="ph">限時開幕特惠</div>
+          <div class="orig">原價 3,000 元</div>
+          <div class="now"><span class="cur">NT$</span><span class="amt">1,500</span></div>
+          <div class="inc">含材料費・10 人開班</div>
+        </div>
+        <div class="facts">
+          <div class="fact"><span class="fl">上課時間</span><span class="fv">3–3.5 小時</span></div>
+          <div class="fact"><span class="fl">需 準 備</span><span class="fv">筆電、Gmail 帳號（可備自己的迷因庫）</span></div>
+          <div class="fact"><span class="fl">帶 走</span><span class="fv">原創 STL 檔＋列印公仔＋練習小模型</span></div>
+        </div>
+        <div class="qr">
+          <image-slot id="qr-good" shape="rounded" radius="8" placeholder="報名 QR"></image-slot>
+          <div class="qc">掃描立即報名</div>
+        </div>
+      </div>
+
+      <div class="addr"><span class="pin">◎</span><span>台北市中山區長安東路二段 31 號 4 樓之 5</span><span class="room">404Table 教室</span></div>
+    </div>
+  </section>
+
+  <!-- ============================ 4 · 酒鬼班 ============================ -->
+  <section class="poster bar theme-drunk" data-screen-label="酒鬼班">
+    <div class="pg">
+      <div class="head">
+        <div class="brand"><span class="mark">404<b>Table</b></span><span class="sub">3D 列印創作教室</span></div>
+        <div class="series">迷因變 3D 模型</div>
+      </div>
+
+      <div class="tape" style="margin-top:13mm;">
+        <span style="display:inline-block;background:#d9a441;color:#1c1108;font-weight:900;font-size:17px;letter-spacing:.04em;padding:8px 18px;border-radius:999px;transform:rotate(-2deg);box-shadow:0 4px 10px rgba(0,0,0,.45);">酒鬼班・微醺限定 🍷</span>
+      </div>
+      <h1 class="h1">酒精 × 迷因 × AI<br><span class="pop">× 3D 的究極課程</span></h1>
+      <p class="lead">想邊喝邊上課？愛喝酒又愛迷因還愛公仔？這堂課就是為各位酒鬼設計的 —— 來一場下班後的桌面小廢物煉成之旅！</p>
+
+      <div class="hero">
+        <div class="chip before"><span class="tag">迷因</span><img class="cimg" src="assets/meme-dicaprio.webp" alt="舉杯迷因" style="object-position:right center;"></div>
+        <div class="arrow">→<small>AI ＋ 3D 列印</small></div>
+        <div class="chip after"><span class="tag">3D 公仔</span><img class="cimg" src="assets/meme-dicaprio.webp" alt="3D 列印舉杯公仔" style="object-position:right center;"></div>
+      </div>
+
+      <div class="steps">
+        <div class="step"><div class="n">1</div><div class="st">迷因檢討會＋酒精</div><div class="sd">與同學交流梗圖、組成迷因大軍，搭配精選酒款碰出新體驗。</div></div>
+        <div class="step"><div class="n">2</div><div class="st">AI 3D 煉成</div><div class="sd">調整細節或二創，讓你的角色也一起喝醉，再轉為立體模型。</div></div>
+        <div class="step"><div class="n">3</div><div class="st">列印公仔</div><div class="sd">在微醺狀態下，把你的迷因角色列印成桌面夥伴。</div></div>
+      </div>
+
+      <div class="perk"><span class="pi">🍻</span><span>以「千杯千杯再千杯」為基調，與特色酒吧合作提供優質酒精支援。</span></div>
+
+      <div class="spacer"></div>
+
+      <div class="foot">
+        <div class="price">
+          <div class="ph">開幕特惠</div>
+          <div class="orig">原價 3,500 元</div>
+          <div class="now"><span class="cur">NT$</span><span class="amt">2,500</span></div>
+          <div class="inc">含酒錢、材料費・10 人開班</div>
+        </div>
+        <div class="facts">
+          <div class="fact"><span class="fl">上課時間</span><span class="fv">3.5 小時</span></div>
+          <div class="fact"><span class="fl">需 準 備</span><span class="fv">筆電、Gmail 帳號、身分證（年齡證明）</span></div>
+          <div class="fact"><span class="fl">提 醒</span><span class="fv">限成年人參加，請理性飲酒</span></div>
+        </div>
+        <div class="qr">
+          <image-slot id="qr-drunk" shape="rounded" radius="8" placeholder="報名 QR"></image-slot>
+          <div class="qc">掃描立即報名</div>
+        </div>
+      </div>
+
+      <div class="addr"><span class="pin">◎</span><span>台北市中山區長安東路二段 31 號 4 樓之 5</span><span class="room">404Table 教室</span></div>
+    </div>
+  </section>
+
+</div>
+
+<script src="image-slot.js"></script>
+</body>
+</html>
