@@ -302,7 +302,8 @@ fbq('track','PageView');
           <div class="klass" id="sum-when" style="font-size:14px;color:var(--muted);margin-top:6px;">未選擇上課時間</div>
         </div>
 
-        <div class="qty">
+        <!-- 報名人數鎖定 1：Recur 不支援 quantity 參數，且名額按報名筆數計算；多人請分別報名 -->
+        <div class="qty" style="display:none">
           <span>報名人數</span>
           <div class="stepper">
             <button type="button" id="minus" aria-label="減少">−</button>
@@ -691,8 +692,9 @@ fbq('track','PageView');
       applySlotFull();   // 換班別：依新班別重新判斷各時段是否被鎖定／剩餘名額
       render();
     });
-    document.getElementById("plus").addEventListener("click", function(){ qty++; render(); });
-    document.getElementById("minus").addEventListener("click", function(){ if(qty>1){ qty--; render(); } });
+    // 報名人數鎖定 1（Recur 不支援 quantity；名額按報名筆數計）。stepper 已隱藏，listener 保留為 no-op 防呆。
+    document.getElementById("plus").addEventListener("click", function(){ qty = 1; render(); });
+    document.getElementById("minus").addEventListener("click", function(){ qty = 1; render(); });
 
     function showDone(b){
       document.getElementById("form-side").style.display = "none";
@@ -768,7 +770,6 @@ fbq('track','PageView');
         var _fail = function(msg){ payBtn.disabled = false; payBtn.textContent = "前往付款 →";
           alert((msg || "無法前往付款，請再試一次") + "\n如有問題請來信 " + OWNER_EMAIL + "。"); };
         // 先在後端 Notion 建「待確認」列（付款 webhook 之後用 Email+班別 對回此列）
-        try { localStorage.setItem("recur_pending", JSON.stringify(booking)); } catch(_){}
         fetch(BACKEND + "/pending", { method:"POST", headers:{ "Content-Type":"application/json" },
           body: JSON.stringify({ booking_id: booking.booking_id, date: booking.date, slot: booking.slot,
             class_name: booking.class_name, product_id: pid, name: nameV, phone: phoneV, email: emailV, amount: amount }) })
