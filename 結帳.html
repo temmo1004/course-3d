@@ -613,19 +613,25 @@ fbq('track','PageView');
         try { localStorage.setItem("recur_pending", JSON.stringify(booking)); } catch(_){}
         payBtn.disabled = true; payBtn.textContent = "前往付款…";
         var _base = location.origin + location.pathname;
-        getRecur().then(function(recur){
-          recur.checkout({
-            productId: pid, customerEmail: emailV, customerName: nameV, mode: 'redirect',
+        var _fail = function(msg){ payBtn.disabled = false; payBtn.textContent = "前往付款 →";
+          alert((msg || "無法前往付款，請再試一次") + "\n如有問題請來信 " + OWNER_EMAIL + "。"); };
+        // 自己建 checkout session（拿 id + client_secret，回傳時才能用 /status 驗證真的付款）
+        fetch("https://api.recur.tw/v1/checkouts", {
+          method: "POST",
+          headers: { "Content-Type":"application/json", "X-Recur-Publishable-Key": RECUR_PK, "X-Recur-Embed-Domain": location.origin },
+          body: JSON.stringify({
+            productId: pid, customerEmail: emailV, customerName: nameV,
             successUrl: _base + "?recur_status=success&bid=" + encodeURIComponent(booking.booking_id),
             cancelUrl:  _base + "?recur_status=cancel"
-          }).catch(function(err){
-            payBtn.disabled = false; payBtn.textContent = "前往付款 →";
-            alert("無法前往付款：" + ((err && err.message) || "請再試一次") + "\n如有問題請來信 " + OWNER_EMAIL + "。");
-          });
-        }, function(){
-          payBtn.disabled = false; payBtn.textContent = "前往付款 →";
-          alert("付款系統載入失敗，請稍後再試，或直接來信 " + OWNER_EMAIL + " 報名。");
-        });
+          })
+        }).then(function(r){ return r.json(); }).then(function(d){
+          var ck = d && d.checkout;
+          if (!ck || !ck.id) { _fail((d && d.error && d.error.message) || "建立結帳失敗"); return; }
+          booking.checkout_id = ck.id;
+          booking.client_secret = ck.client_secret || "";
+          try { localStorage.setItem("recur_pending", JSON.stringify(booking)); } catch(_){}
+          location.href = "https://checkout.recur.tw/" + ck.id;   // 跳轉到 hosted 結帳頁
+        }).catch(function(){ _fail("付款系統連線失敗"); });
         return;
       }
 
@@ -692,21 +698,51 @@ fbq('track','PageView');
       var saved = null;
       try { saved = JSON.parse(localStorage.getItem("recur_pending") || "null"); } catch(_){}
       try { localStorage.removeItem("recur_pending"); } catch(_){}
-      var bid = params.get("bid");
-      var orderId = params.get("session_id") || params.get("order_id") || params.get("session") || params.get("order") || "";
       history.replaceState(null, "", location.pathname + "?paid=1");
-      if (saved && (!bid || saved.booking_id === bid)) {
+
+      function donePending(title, msg){
+        document.getElementById("form-side").style.display = "none";
+        var d = document.getElementById("done"); d.classList.add("show");
+        var h3 = d.querySelector("h3"); if (h3) h3.textContent = title;
+        document.getElementById("done-msg").textContent = msg;
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+      function finishPaid(orderId){
         try {
-          gtag('event','purchase',{ transaction_id: orderId, currency:'TWD', value: saved.amount || 0,
+          gtag('event','purchase',{ transaction_id: orderId || '', currency:'TWD', value: saved.amount || 0,
             items:[{ item_id: saved.item_id, item_name: saved.item_name, price: saved.unit_price, quantity: saved.qty }] });
           fbq('track','Purchase',{ content_ids:[saved.item_id], content_name: saved.item_name,
             content_type:'product', value: saved.amount || 0, currency:'TWD', num_items: saved.qty });
         } catch(_){}
-        saved.order_id = orderId; saved.paid = true;
+        saved.order_id = orderId || ""; saved.paid = true;
         recordBooking(saved).then(function(){ showDone(saved); });
-      } else {
-        showDone({ _generic: true });
       }
+
+      if (!saved || !saved.checkout_id) { showDone({ _generic: true }); return; }
+
+      // 回傳確認付款：用 Recur API 查該 checkout 狀態，SUCCEEDED 才算真的付款成功
+      var verifyURL = "https://api.recur.tw/v1/checkouts/" + encodeURIComponent(saved.checkout_id) +
+                      "/status?client_secret=" + encodeURIComponent(saved.client_secret || "");
+      var tries = 0;
+      (function verify(){
+        fetch(verifyURL, { headers: { "X-Recur-Publishable-Key": RECUR_PK } })
+          .then(function(r){ return r.json(); })
+          .then(function(st){
+            var ck = (st && st.checkout) || {}, status = ck.status;
+            if (status === "SUCCEEDED") { finishPaid(ck.orderId || ck.order_id || ""); return; }
+            if (tries++ < 3) { setTimeout(verify, 1500); return; }   // 容忍金流短暫延遲
+            donePending("付款處理中…",
+              "尚未確認到您的付款（狀態：" + (status || "未知") + "）。若您已完成付款，款項確認後會以 Email 通知；如有疑問請來信 " + OWNER_EMAIL + "。");
+          })
+          .catch(function(){
+            if (tries++ < 3) { setTimeout(verify, 1500); return; }
+            // 驗證連線失敗 → 不誆稱成功，記一筆待確認、請對方等通知
+            saved.status_check = "verify_failed";
+            recordBooking(saved);
+            donePending("已收到，付款確認中",
+              "已收到您的報名，付款確認後我們會以 Email 通知上課資訊；如有疑問請來信 " + OWNER_EMAIL + "。");
+          });
+      })();
     })();
 
     applyCourseSlots();   // 初始：依班別決定可選時段
