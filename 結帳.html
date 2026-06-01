@@ -763,9 +763,9 @@ fbq('track','PageView');
             class_name: booking.class_name, product_id: pid, name: nameV, phone: phoneV, email: emailV, amount: amount }) })
           .catch(function(){})
           .finally(function(){
-            // 官方 SDK hosted 結帳：redirectToCheckout 自行建立 hosted session 並導去 checkout.recur.tw，付完才回 successUrl
+            // 官方 SDK hosted 結帳：建立 checkout session 取得 hosted url，再跳轉；付完才回 successUrl
             getRecur().then(function(recur){
-              return recur.redirectToCheckout({
+              return recur.createCheckoutSession({
                 productId: pid,
                 customerEmail: emailV,
                 customerName: nameV,
@@ -773,6 +773,9 @@ fbq('track','PageView');
                 successUrl: _base + "?recur_status=success&bid=" + encodeURIComponent(booking.booking_id) + "&session_id={CHECKOUT_SESSION_ID}",
                 cancelUrl:  _base + "?recur_status=cancel"
               });
+            }).then(function(s){
+              if (!s || !s.url) { _fail("建立結帳失敗，請再試一次"); return; }
+              location.href = s.url;   // 導去 checkout.recur.tw hosted 付款頁
             }).catch(function(e){ _fail((e && e.message) || "付款系統連線失敗，請再試一次"); });
           });
         return;
