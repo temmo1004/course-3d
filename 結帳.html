@@ -316,6 +316,7 @@ fbq('track','PageView');
     // ── 線上金流（Recur，hosted 跳轉頁）。改 false 即回純報名制（Email 聯繫繳費）。
     var PAYMENT_ENABLED = true;
     var RECUR_PK = "pk_live_971e9a83e1269b1166ecf56371449f2756812dc93bc3e66962257303f85c0f06";
+    var BACKEND  = "https://srv-404table-webhook.zeabur.app";   // 報名後端（寫 Notion + 寄信 + 達標/退款）
     var PRODUCT = {
       family: "yr6afxsc3qdbvy86835lf05j",  // 親子班 1500
       adult:  "ees4gsq3hnmshrw52pfbg82y",  // 成人班 1600
@@ -508,27 +509,11 @@ fbq('track','PageView');
     }
 
     function refreshSlots(){
-      currentSlotData = {};        // 換日期先清空舊座位資料
-      applySlotFull();             // 立刻依「開放日期規則」套用：下午/晚上即時可選，不必等 GAS
-      if(!GAS_READY || !dateEl.value){ return; }
-      // 對「可選」時段顯示查詢中（封鎖／隱藏的不動）
+      currentSlotData = {};
+      applySlotFull();   // 依開放規則即時套用；名額/開班與否由後端每日判定，前端不再查 GAS
       [].forEach.call(slotWrap.children, function(b){
-        if(b.style.display === "none" || b.classList.contains("blocked")) return;
-        var seat = b.querySelector(".seat");
-        if(seat){ seat.textContent = "名額查詢中…"; seat.classList.add("show"); seat.classList.remove("few"); }
+        var seat = b.querySelector(".seat"); if(seat){ seat.textContent = ""; seat.classList.remove("show","few"); }
       });
-      var ctrl = (typeof AbortController !== "undefined") ? new AbortController() : null;
-      var timer = setTimeout(function(){ if(ctrl) ctrl.abort(); }, 8000);   // GAS 慢 → 8 秒逾時
-      fetch(GAS_ENDPOINT + "?date=" + encodeURIComponent(dateEl.value), ctrl ? { signal: ctrl.signal } : {})
-        .then(function(r){ return r.json(); })
-        .then(function(d){ clearTimeout(timer); currentSlotData = d || {}; applySlotFull(); render(); })
-        .catch(function(){
-          clearTimeout(timer);
-          // 查詢失敗／逾時：清掉「查詢中」字樣，時段仍可依開放規則選（不卡死）
-          [].forEach.call(slotWrap.children, function(b){
-            var seat = b.querySelector(".seat"); if(seat){ seat.textContent = ""; seat.classList.remove("show","few"); }
-          });
-        });
     }
 
     function fmt(n){ return "NT$ " + n.toLocaleString("en-US"); }
@@ -669,7 +654,11 @@ fbq('track','PageView');
           booking.checkout_id = ck.id;
           booking.client_secret = ck.client_secret || "";
           try { localStorage.setItem("recur_pending", JSON.stringify(booking)); } catch(_){}
-          location.href = "https://checkout.recur.tw/" + ck.id;   // 跳轉到 hosted 結帳頁
+          // 先讓後端在 Notion 建「待確認」列（付款 webhook 會用 checkout_id 找到它改已付款）
+          fetch(BACKEND + "/pending", { method:"POST", headers:{ "Content-Type":"application/json" },
+            body: JSON.stringify({ checkout_id: ck.id, booking_id: booking.booking_id, date: booking.date,
+              slot: booking.slot, class_name: booking.class_name, name: nameV, phone: phoneV, email: emailV, amount: amount }) })
+            .catch(function(){}).finally(function(){ location.href = "https://checkout.recur.tw/" + ck.id; });
         }).catch(function(){ _fail("付款系統連線失敗"); });
         return;
       }
@@ -754,7 +743,7 @@ fbq('track','PageView');
             content_type:'product', value: saved.amount || 0, currency:'TWD', num_items: saved.qty });
         } catch(_){}
         saved.order_id = orderId || ""; saved.paid = true;
-        recordBooking(saved).then(function(){ showDone(saved); });
+        showDone(saved);   // 資料由後端 webhook 寫 Notion + ZSend 寄信；前端只顯示完成
       }
 
       if (!saved || !saved.checkout_id) { showDone({ _generic: true }); return; }
@@ -775,9 +764,7 @@ fbq('track','PageView');
           })
           .catch(function(){
             if (tries++ < 3) { setTimeout(verify, 1500); return; }
-            // 驗證連線失敗 → 不誆稱成功，記一筆待確認、請對方等通知
-            saved.status_check = "verify_failed";
-            recordBooking(saved);
+            // 驗證連線失敗 → 不誆稱成功。後端 webhook 仍會獨立確認付款並寫 Notion，這裡只提示。
             donePending("已收到，付款確認中",
               "已收到您的報名，付款確認後我們會以 Email 通知上課資訊；如有疑問請來信 " + OWNER_EMAIL + "。");
           });
