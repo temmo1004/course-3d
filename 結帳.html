@@ -246,7 +246,7 @@ fbq('track','PageView');
           <button type="button" data-slot="早上">早上<span class="sub">09:00–12:00</span><span class="seat"></span><span class="full-tag">已額滿</span></button>
           <button type="button" data-slot="下午">下午<span class="sub">13:30–16:30</span><span class="seat"></span><span class="full-tag">已額滿</span></button>
           <button type="button" data-slot="晚上">晚上<span class="sub">18:30–21:30</span><span class="seat"></span><span class="full-tag">已額滿</span></button>
-          <button type="button" data-slot="深夜">深夜<span class="sub">20:00–23:00</span><span class="seat"></span><span class="full-tag">已額滿</span></button>
+          <button type="button" data-slot="深夜">深夜<span class="sub">00:00–3:30</span><span class="seat"></span><span class="full-tag">已額滿</span></button>
         </div>
 
       <div style="margin-top:40px"><span class="eyebrow">報名資料</span></div>
@@ -367,6 +367,7 @@ fbq('track','PageView');
 
     var GAS_READY = GAS_ENDPOINT.indexOf("XXXX") === -1;
     var currentSlotData = {};    // 目前所選日期：各時段 { owner, byClass:{班別:人數} }
+    var SEATS = {};              // 後端 /seats 回傳：「日期|時段|班別」→ 已報人數
 
     var params = new URLSearchParams(location.search);
     var preset = params.get("course");
@@ -510,12 +511,52 @@ fbq('track','PageView');
       });
     }
 
-    function refreshSlots(){
+    // 依後端 /seats，把目前所選日期的各時段已報人數填入 currentSlotData（供 applySlotFull 顯示）
+    function buildCurrentSlotData(){
       currentSlotData = {};
-      applySlotFull();   // 依開放規則即時套用；名額/開班與否由後端每日判定，前端不再查 GAS
-      [].forEach.call(slotWrap.children, function(b){
-        var seat = b.querySelector(".seat"); if(seat){ seat.textContent = ""; seat.classList.remove("show","few"); }
+      var date = dateEl.value; if(!date) return;
+      Object.keys(SEATS).forEach(function(k){
+        var p = k.split("|"); if(p[0] !== date) return;
+        var sd = currentSlotData[p[1]] || (currentSlotData[p[1]] = { owner:"", byClass:{} });
+        sd.byClass[p[2]] = (sd.byClass[p[2]] || 0) + (SEATS[k] || 0);
       });
+    }
+
+    // 班別的所有可選時段都滿了 → 該日期不能選（標「已滿」並 disabled）
+    function updateDateOptions(){
+      var klass = LABEL[courseSel.value] || "";
+      var allow = COURSE_SLOTS[courseSel.value] || [];
+      [].forEach.call(dateEl.options, function(o){
+        if(!o.value) return;
+        var base = o.getAttribute("data-label");
+        if(base === null){ base = o.textContent; o.setAttribute("data-label", base); }
+        var full = allow.length > 0 && allow.every(function(s){
+          return (SEATS[o.value + "|" + s + "|" + klass] || 0) >= MAX_SEATS;
+        });
+        o.disabled = full;
+        o.textContent = full ? base + "（已滿）" : base;
+      });
+      // 目前選的日期若已滿，清掉選擇
+      var cur = dateEl.selectedOptions && dateEl.selectedOptions[0];
+      if(cur && cur.disabled){ dateEl.value = ""; }
+    }
+
+    function refreshSlots(){
+      buildCurrentSlotData();
+      updateDateOptions();
+      applySlotFull();   // 顯示各時段已報人數／是否滿班；達標與退款由後端每日判定
+    }
+
+    // 向後端取得各場次目前人數，更新名額顯示與已滿日期
+    function fetchSeats(){
+      if(typeof BACKEND === "undefined" || !BACKEND) return;
+      fetch(BACKEND + "/seats").then(function(r){ return r.json(); }).then(function(d){
+        if(!d) return;
+        SEATS = d.counts || {};
+        if(d.max){ MAX_SEATS = d.max; }
+        if(d.min){ MIN_OPEN = d.min; }
+        refreshSlots();
+      }).catch(function(){});
     }
 
     function fmt(n){ return "NT$ " + n.toLocaleString("en-US"); }
@@ -542,14 +583,16 @@ fbq('track','PageView');
       render();
     });
     dateEl.addEventListener("change", function(){ refreshSlots(); render(); });
-    // 點選日期卡片：更新隱藏 input 的值並連動時段與摘要
-    dateSeg.addEventListener("click", function(e){
-      var b = e.target.closest("button"); if(!b) return;
-      [].forEach.call(dateSeg.children, function(x){ x.classList.remove("on"); });
-      b.classList.add("on");
-      dateEl.value = b.getAttribute("data-date");
-      refreshSlots(); render();
-    });
+    // 點選日期卡片：更新隱藏 input 的值並連動時段與摘要（無此元素時略過，避免中斷後續綁定）
+    if (dateSeg) {
+      dateSeg.addEventListener("click", function(e){
+        var b = e.target.closest("button"); if(!b) return;
+        [].forEach.call(dateSeg.children, function(x){ x.classList.remove("on"); });
+        b.classList.add("on");
+        dateEl.value = b.getAttribute("data-date");
+        refreshSlots(); render();
+      });
+    }
 
     // auto-apply class from the homepage selection
     if (preset && LABEL[preset]) {
@@ -562,6 +605,7 @@ fbq('track','PageView');
       noteEl.textContent = "已選擇「" + (LABEL[courseSel.value] || courseSel.value) + "」。";
       noteEl.classList.remove("applied");
       applyCourseSlots();   // 換班別：更新可選時段（酒鬼班為夜班，其他班為早／中／晚）
+      updateDateOptions();  // 換班別：依新班別重算哪些日期已滿
       applySlotFull();   // 換班別：依新班別重新判斷各時段是否被鎖定／剩餘名額
       render();
     });
@@ -776,6 +820,7 @@ fbq('track','PageView');
     applyCourseSlots();   // 初始：依班別決定可選時段
     applySlotFull();   // 初始即套用（時段灰化等狀態）
     render();
+    fetchSeats();   // 向後端取得目前各場次人數，更新名額顯示與已滿日期
   </script>
 </body>
 </html>
