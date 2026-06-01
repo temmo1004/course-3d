@@ -485,6 +485,25 @@ fbq('track','PageView');
       drunk:  ["晚上", "深夜"]    // 酒鬼班
     };
 
+    // —— 排課表：每個日期＋時段「實際開哪個班」（單一真實來源；學員只能選到排定的組合，避免撞班）——
+    //   6/12(五) 酒鬼班 晚上+深夜｜6/13(六) 親子班 早上+下午｜6/14(日) 健康乖寶寶班 早上+下午
+    //   6/19(五) 成人班 晚上｜6/20(六) 親子班 早上+下午｜6/21(日) 健康乖寶寶班 早上+下午
+    //   要改排課直接改這張表即可（key=日期，值={時段:班別}）。
+    var SCHEDULE = {
+      "2026-06-12": { "晚上": "酒鬼班", "深夜": "酒鬼班" },
+      "2026-06-13": { "早上": "親子班", "下午": "親子班" },
+      "2026-06-14": { "早上": "健康乖寶寶班", "下午": "健康乖寶寶班" },
+      "2026-06-19": { "晚上": "成人班" },
+      "2026-06-20": { "早上": "親子班", "下午": "親子班" },
+      "2026-06-21": { "早上": "健康乖寶寶班", "下午": "健康乖寶寶班" }
+    };
+    // 某日期、某班別「排定的時段」陣列
+    function scheduledSlots(dateStr, klassLabel){
+      var m = SCHEDULE[dateStr] || {}, out = [];
+      for (var s in m){ if(m[s] === klassLabel) out.push(s); }
+      return out;
+    }
+
     // 依班別只顯示該班的時段（其餘隱藏）
     function applyCourseSlots(){
       var allow = COURSE_SLOTS[courseSel.value] || [];
@@ -498,12 +517,10 @@ fbq('track','PageView');
       slotWrap.style.gridTemplateColumns = "repeat(" + allow.length + ", 1fr)";
     }
 
-    // 時段是否「未開放」（需灰化）：未選日期、非開放日、或非該班時段
+    // 時段是否「未開放」（需灰化）：依排課表，只有當天排定給「目前班別」的時段才開
     function slotClosed(dateStr, slotName){
       if(!dateStr) return true;
-      if(OPEN_DATES.indexOf(dateStr) < 0) return true;
-      var allow = COURSE_SLOTS[courseSel.value] || [];
-      return allow.indexOf(slotName) < 0;
+      return (SCHEDULE[dateStr] || {})[slotName] !== (LABEL[courseSel.value] || "");
     }
 
     // 灰化標籤文字
@@ -593,32 +610,33 @@ fbq('track','PageView');
       });
     }
 
-    // 班別的所有可選時段都滿了 → 該日期不能選（標「已滿」並 disabled / 按鈕灰化）
+    // 依排課表：該班沒排的日期→隱藏/標「未開」、不可選；排定但時段都滿→標「已滿」
     function updateDateOptions(){
       var klass = LABEL[courseSel.value] || "";
-      var allow = COURSE_SLOTS[courseSel.value] || [];
-      function isFull(dateVal){
-        return allow.length > 0 && allow.every(function(s){
-          return (SEATS[dateVal + "|" + s + "|" + klass] || 0) >= MAX_SEATS;
-        });
+      function dateState(dateVal){
+        var slots = scheduledSlots(dateVal, klass);
+        if(slots.length === 0) return "closed";   // 該班當天不開課
+        var full = slots.every(function(s){ return (SEATS[dateVal + "|" + s + "|" + klass] || 0) >= MAX_SEATS; });
+        return full ? "full" : "open";
       }
       [].forEach.call(dateEl.options, function(o){
         if(!o.value) return;
         var base = o.getAttribute("data-label");
         if(base === null){ base = o.textContent; o.setAttribute("data-label", base); }
-        var full = isFull(o.value);
-        o.disabled = full;
-        o.textContent = full ? base + "（已滿）" : base;
+        var st = dateState(o.value);
+        o.disabled = (st !== "open");
+        o.textContent = st === "closed" ? base + "（未開）" : st === "full" ? base + "（已滿）" : base;
       });
       if(dateSeg){
         [].forEach.call(dateSeg.children, function(b){
           var v = b.getAttribute("data-date"); if(!v) return;
-          var full = isFull(v);
-          b.classList.toggle("full", full);
-          if(full && b.classList.contains("on")){ b.classList.remove("on"); dateEl.value = ""; }
+          var st = dateState(v);
+          b.style.display = (st === "closed") ? "none" : "";   // 該班不開的日期直接隱藏
+          b.classList.toggle("full", st === "full");
+          if(st !== "open" && b.classList.contains("on")){ b.classList.remove("on"); dateEl.value = ""; }
         });
       }
-      // 目前選的日期若已滿，清掉選擇
+      // 目前選的日期若不可選，清掉選擇
       var cur = dateEl.selectedOptions && dateEl.selectedOptions[0];
       if(cur && cur.disabled){ dateEl.value = ""; }
     }
@@ -877,6 +895,7 @@ fbq('track','PageView');
     })();
 
     applyCourseSlots();   // 初始：依班別決定可選時段
+    updateDateOptions();  // 初始：依排課表過濾可選日期（即使 /seats 失敗也先鎖好，不靠後端）
     applySlotFull();   // 初始即套用（時段灰化等狀態）
     render();
     fetchSeats();   // 向後端取得目前各場次人數，更新名額顯示與已滿日期
