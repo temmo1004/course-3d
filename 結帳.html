@@ -4,6 +4,26 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>報名結帳 — 塗鴉變 3D 模型</title>
+
+<!-- GA4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6P4C0V0QH0"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-6P4C0V0QH0');
+</script>
+
+<!-- Meta Pixel -->
+<script>
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init','1501976728044362');
+fbq('track','PageView');
+</script>
+
+<!-- Recur 金流 SDK (UMD) -->
+<script async src="https://unpkg.com/recur-tw@latest/dist/recur.umd.js"></script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
@@ -209,9 +229,14 @@
       <div style="margin-top:40px"><span class="eyebrow">上課時間</span></div>
       <div class="field">
         <label for="date">上課日期</label>
-        <input type="hidden" id="date">
-        <div class="dateseg" id="dateseg"></div>
-        <p class="note">點選可報名的上課日：6/11 前為週五、六、日；6/12 起為週三、五、六、日。實際開課以達標並另行 email 確認為準。</p>
+        <select id="date">
+          <option value="" selected disabled>請選擇上課日期</option>
+          <option value="2026-06-13">6/13（六）</option>
+          <option value="2026-06-14">6/14（日）</option>
+          <option value="2026-06-20">6/20（六）</option>
+          <option value="2026-06-21">6/21（日）</option>
+        </select>
+        <p class="note">小朋友班為下午場、成人班為晚上場（酒鬼班加開深夜）。實際開課以達標並另行 email 確認為準。</p>
       </div>
       <div class="field">
         <label>時段</label>
@@ -288,6 +313,33 @@
     var LABEL = { family: "親子班", adult: "成人班", good: "健康乖寶寶班", drunk: "酒鬼班" };
     var SERIES = { family: "塗鴉變 3D 模型？！", adult: "塗鴉變 3D 模型？！", good: "迷因變成 3D 模型？！", drunk: "迷因變成 3D 模型？！" };
 
+    // ── 線上金流（Recur，hosted 跳轉頁）。改 false 即回純報名制（Email 聯繫繳費）。
+    var PAYMENT_ENABLED = true;
+    var RECUR_PK = "pk_live_971e9a83e1269b1166ecf56371449f2756812dc93bc3e66962257303f85c0f06";
+    var PRODUCT = {
+      family: "yr6afxsc3qdbvy86835lf05j",  // 親子班 1500
+      adult:  "ees4gsq3hnmshrw52pfbg82y",  // 成人班 1600
+      good:   "e0g9gcs1jaxv1cf1zg1zwjii",  // 健康乖寶寶班 1500
+      drunk:  "qyj8aau0h2tsacl4cfnpo2ko"   // 酒鬼班 2500
+    };
+    var recurInstance = null;
+    function getRecur(){
+      return new Promise(function(resolve, reject){
+        var tries = 0;
+        (function w(){
+          if (recurInstance) return resolve(recurInstance);
+          if (window.RecurCheckout) { recurInstance = window.RecurCheckout.init({ publishableKey: RECUR_PK }); return resolve(recurInstance); }
+          if (tries++ > 60) return reject(new Error("Recur SDK 載入逾時"));
+          setTimeout(w, 100);
+        })();
+      });
+    }
+    function recordBooking(b){
+      if (typeof GAS_READY !== "undefined" && !GAS_READY) return Promise.resolve(null);
+      return fetch(GAS_ENDPOINT, { method:"POST", headers:{ "Content-Type":"text/plain;charset=utf-8" }, body: JSON.stringify(b) })
+        .then(function(r){ return r.json(); }).catch(function(){ return null; });
+    }
+
     // ── 報名串接 Google 試算表（Apps Script）──────────────────────────
     // 用同一個 Google 帳戶（infinit121717@gmail.com）即可。一支腳本同時：
     //   ① 把每筆報名寫進試算表（可統計「每個時段報了幾人」）
@@ -331,33 +383,13 @@
     var qty = 1;
     var slot = "";
 
-    // —— 以「下拉選單」列出可報名上課日（不用日曆，不能上的日子直接不出現）——
     var WD_NAMES = ["日","一","二","三","四","五","六"];
-    function pad2(n){ return (n < 10 ? "0" : "") + n; }
-    function ymd(dt){ return dt.getFullYear() + "-" + pad2(dt.getMonth()+1) + "-" + pad2(dt.getDate()); }
     function fmtDateLabel(ds){
       var wd = new Date(ds + "T00:00:00").getDay();
       var p = ds.split("-");
       return (+p[1]) + "/" + (+p[2]) + "（週" + WD_NAMES[wd] + "）";
     }
-    function buildDateOptions(){
-      var now = new Date();
-      var startDt = new Date(now.getFullYear(), now.getMonth(), now.getDate()+1);  // 今天之後
-      var start = ymd(startDt);
-      var html = "";
-      var d = new Date(REG_START + "T00:00:00");
-      var end = new Date(REG_END + "T00:00:00");
-      for(; d <= end; d.setDate(d.getDate()+1)){
-        var ds = ymd(d);
-        if(ds < start) continue;            // 已過的日期不列
-        if(!allowedWeekday(ds)) continue;   // 非開課星期幾不列
-        var p = ds.split("-");
-        var wd = new Date(ds + "T00:00:00").getDay();
-        html += '<button type="button" data-date="' + ds + '">' + (+p[1]) + '/' + (+p[2]) +
-                '<span class="dw">週' + WD_NAMES[wd] + '</span></button>';
-      }
-      dateSeg.innerHTML = html;
-    }
+
 
     function whenText(){
       if(!dateEl.value && !slot) return "未選擇上課時間";
@@ -365,55 +397,46 @@
       return d + "・" + (slot || "（未選時段）");
     }
 
-    // —— 開放報名規則（依「上課日期」判定，YYYY-MM-DD 字串可直接比較）——
-    //   報名期間 6/1–6/30
-    //   6/11 前（含）：僅週五、六、日 → 早、中班
-    //   6/12 起（含）：週三、五、六、日 → 早、中、晚班
-    //   酒鬼班：夜班（於允許的星期幾、報名期間內皆可）
-    var REG_START   = "2026-06-01";   // 報名期間起（含）
-    var REG_END     = "2026-06-30";   // 報名期間迄（含）
-    var EXPAND_FROM = "2026-06-12";   // 自此日（含）起加開「週三」與「晚班」
+    // —— 各班開放時段（依小朋友/成人區分；課程只開 6/13、14、20、21 四天）——
+    //   親子班 / 健康乖寶寶班（小朋友）→ 下午
+    //   成人班（成人）→ 晚上
+    //   酒鬼班（成人）→ 晚上、深夜
+    //   早上全程不開放
+    var OPEN_DATES   = ["2026-06-13", "2026-06-14", "2026-06-20", "2026-06-21"];
+    var COURSE_SLOTS = {
+      family: ["下午"],          // 親子班（小朋友）
+      good:   ["下午"],          // 健康乖寶寶班（小朋友）
+      adult:  ["晚上"],          // 成人班
+      drunk:  ["晚上", "深夜"]    // 酒鬼班
+    };
 
-    // 該日期的星期幾是否開課（0=日,1=一,…,6=六）
-    //   6/12 前：週五(5)六(6)日(0)；6/12 起：週三(3)五(5)六(6)日(0)
-    function allowedWeekday(dateStr){
-      if(!dateStr) return false;
-      var d = new Date(dateStr + "T00:00:00").getDay();
-      if(dateStr < EXPAND_FROM) return (d === 5 || d === 6 || d === 0);
-      return (d === 3 || d === 5 || d === 6 || d === 0);
-    }
-
-    // 酒鬼班：只開「夜」班；其他班：開「早／中／晚」（隱藏「夜」）
+    // 依班別只顯示該班的時段（其餘隱藏）
     function applyCourseSlots(){
-      var isDrunk = courseSel.value === "drunk";
+      var allow = COURSE_SLOTS[courseSel.value] || [];
       [].forEach.call(slotWrap.children, function(b){
         var name = b.getAttribute("data-slot");
-        var visible = isDrunk ? (name === "夜") : (name !== "夜");
+        var visible = allow.indexOf(name) >= 0;
         b.style.display = visible ? "" : "none";
         if(!visible && b.classList.contains("on")){ b.classList.remove("on"); slot = ""; }
       });
       // 欄數隨可選時段調整（酒鬼班 1 欄、其他班 3 欄）
-      slotWrap.style.gridTemplateColumns = "repeat(" + (isDrunk ? 1 : 3) + ", 1fr)";
+      slotWrap.style.gridTemplateColumns = "repeat(" + allow.length + ", 1fr)";
     }
 
-    // 回傳該「時段」在該日期是否「未開放」（需灰化、不可選）
+    // 時段是否「未開放」（需灰化）：未選日期、非開放日、或非該班時段
     function slotClosed(dateStr, slotName){
-      if(!dateStr) return true;                                  // 未選日期 → 先灰化
-      if(dateStr < REG_START || dateStr > REG_END) return true;  // 非報名期間
-      if(!allowedWeekday(dateStr)) return true;                  // 該星期幾不開課
-      if(slotName === "晚") return dateStr < EXPAND_FROM;        // 晚班自 6/12（含）起開放
-      return false;                                              // 早／中／夜：允許日皆開
+      if(!dateStr) return true;
+      if(OPEN_DATES.indexOf(dateStr) < 0) return true;
+      var allow = COURSE_SLOTS[courseSel.value] || [];
+      return allow.indexOf(slotName) < 0;
     }
 
-    // 灰化標籤文字：依原因給不同說明
+    // 灰化標籤文字
     function closedTag(dateStr, slotName){
-      if(dateStr && (dateStr < REG_START || dateStr > REG_END)) return "未開放報名";
-      if(dateStr && !allowedWeekday(dateStr)) return "此日不開課";
-      if(slotName === "晚") return "6/12 起開放";
-      return "未開放";
+      return dateStr ? "未開放" : "請先選日期";
     }
 
-    buildDateOptions();   // 完成規則定義後，填入可選上課日下拉選單
+
 
     // 模擬名額：依日期＋時段偵測是否滿班（無後端，以確定性雜湊判定）
     function slotFull(dateStr, slotName){
@@ -485,16 +508,23 @@
     }
 
     function refreshSlots(){
-      if(!GAS_READY || !dateEl.value){ currentSlotData = {}; applySlotFull(); return; }
-      // 查詢中提示
+      currentSlotData = {};        // 換日期先清空舊座位資料
+      applySlotFull();             // 立刻依「開放日期規則」套用：下午/晚上即時可選，不必等 GAS
+      if(!GAS_READY || !dateEl.value){ return; }
+      // 對「可選」時段顯示查詢中（封鎖／隱藏的不動）
       [].forEach.call(slotWrap.children, function(b){
+        if(b.style.display === "none" || b.classList.contains("blocked")) return;
         var seat = b.querySelector(".seat");
         if(seat){ seat.textContent = "名額查詢中…"; seat.classList.add("show"); seat.classList.remove("few"); }
       });
-      fetch(GAS_ENDPOINT + "?date=" + encodeURIComponent(dateEl.value))
+      var ctrl = (typeof AbortController !== "undefined") ? new AbortController() : null;
+      var timer = setTimeout(function(){ if(ctrl) ctrl.abort(); }, 8000);   // GAS 慢 → 8 秒逾時
+      fetch(GAS_ENDPOINT + "?date=" + encodeURIComponent(dateEl.value), ctrl ? { signal: ctrl.signal } : {})
         .then(function(r){ return r.json(); })
-        .then(function(d){ currentSlotData = d || {}; applySlotFull(); render(); })
+        .then(function(d){ clearTimeout(timer); currentSlotData = d || {}; applySlotFull(); render(); })
         .catch(function(){
+          clearTimeout(timer);
+          // 查詢失敗／逾時：清掉「查詢中」字樣，時段仍可依開放規則選（不卡死）
           [].forEach.call(slotWrap.children, function(b){
             var seat = b.querySelector(".seat"); if(seat){ seat.textContent = ""; seat.classList.remove("show","few"); }
           });
@@ -551,12 +581,24 @@
     document.getElementById("plus").addEventListener("click", function(){ qty++; render(); });
     document.getElementById("minus").addEventListener("click", function(){ if(qty>1){ qty--; render(); } });
 
-    function showDone(){
+    function showDone(b){
       document.getElementById("form-side").style.display = "none";
       var d = document.getElementById("done");
       d.classList.add("show");
-      document.getElementById("done-msg").textContent =
-        "已為您保留「" + (LABEL[courseSel.value]||"") + "」" + qty + " 個名額（" + whenText() + "），將盡快以 Email 聯繫後續繳費與上課細節。";
+      var h3 = d.querySelector("h3");
+      var klass = b ? (b.class_name || "") : (LABEL[courseSel.value] || "");
+      var q     = b ? b.qty : qty;
+      var when  = b ? (b.when || "") : whenText();
+      if (PAYMENT_ENABLED) {
+        if (h3) h3.textContent = "付款完成！";
+        document.getElementById("done-msg").textContent = (b && b._generic)
+          ? "付款完成，感謝報名！收據與上課地點/時間將以 Email 寄給您。"
+          : "付款完成，已為您保留「" + klass + "」" + q + " 個名額（" + when + "）。收據與上課細節將以 Email 寄出。";
+      } else {
+        if (h3) h3.textContent = "報名已送出！";
+        document.getElementById("done-msg").textContent =
+          "已為您保留「" + klass + "」" + q + " 個名額（" + when + "），將盡快以 Email 聯繫後續繳費與上課細節。";
+      }
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
@@ -592,6 +634,45 @@
         phone: phoneV,
         email: emailV
       };
+      booking.booking_id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+                         : (String(Date.now()) + Math.random().toString(36).slice(2));
+
+      // ── 線上金流：hosted 跳轉到 checkout.recur.tw，付完才導回 successUrl ──
+      if (PAYMENT_ENABLED) {
+        var pid = PRODUCT[c];
+        if (!pid){ alert("此班別暫時無法線上付款，請來信 " + OWNER_EMAIL + " 報名。"); return; }
+        var unitPrice = PRICE[c] || 0, amount = unitPrice * qty, itemName = (SERIES[c]||"") + " " + (LABEL[c]||c);
+        try {
+          gtag('event','begin_checkout',{ currency:'TWD', value:amount,
+            items:[{ item_id:c, item_name:itemName, price:unitPrice, quantity:qty }] });
+          fbq('track','InitiateCheckout',{ content_ids:[c], content_name:itemName,
+            content_type:'product', value:amount, currency:'TWD', num_items:qty });
+        } catch(_){}
+        booking.amount = amount; booking.item_id = c; booking.item_name = itemName; booking.unit_price = unitPrice;
+        try { localStorage.setItem("recur_pending", JSON.stringify(booking)); } catch(_){}
+        payBtn.disabled = true; payBtn.textContent = "前往付款…";
+        var _base = location.origin + location.pathname;
+        var _fail = function(msg){ payBtn.disabled = false; payBtn.textContent = "前往付款 →";
+          alert((msg || "無法前往付款，請再試一次") + "\n如有問題請來信 " + OWNER_EMAIL + "。"); };
+        // 自己建 checkout session（拿 id + client_secret，回傳時才能用 /status 驗證真的付款）
+        fetch("https://api.recur.tw/v1/checkouts", {
+          method: "POST",
+          headers: { "Content-Type":"application/json", "X-Recur-Publishable-Key": RECUR_PK, "X-Recur-Embed-Domain": location.origin },
+          body: JSON.stringify({
+            productId: pid, customerEmail: emailV, customerName: nameV,
+            successUrl: _base + "?recur_status=success&bid=" + encodeURIComponent(booking.booking_id),
+            cancelUrl:  _base + "?recur_status=cancel"
+          })
+        }).then(function(r){ return r.json(); }).then(function(d){
+          var ck = d && d.checkout;
+          if (!ck || !ck.id) { _fail((d && d.error && d.error.message) || "建立結帳失敗"); return; }
+          booking.checkout_id = ck.id;
+          booking.client_secret = ck.client_secret || "";
+          try { localStorage.setItem("recur_pending", JSON.stringify(booking)); } catch(_){}
+          location.href = "https://checkout.recur.tw/" + ck.id;   // 跳轉到 hosted 結帳頁
+        }).catch(function(){ _fail("付款系統連線失敗"); });
+        return;
+      }
 
       // 尚未設定 Apps Script → 展示模式：直接顯示成功（不寫入、不寄出）
       if (!GAS_READY) { showDone(); return; }
@@ -629,6 +710,79 @@
         alert("送出失敗，請稍後再試，或直接來信 " + OWNER_EMAIL + " 報名。");
       });
     });
+
+    // 付款模式：把報名文案改成付款導向
+    if (PAYMENT_ENABLED) {
+      var _pay = document.getElementById("pay");
+      if (_pay) _pay.textContent = "前往付款 →";
+      [].forEach.call(document.querySelectorAll(".safe-note"), function(n){
+        n.textContent = "付款由 Recur 安全結帳（信用卡）。完成後以 Email 寄送收據與上課資訊。";
+      });
+      [].forEach.call(document.querySelectorAll(".hint-price"), function(n){
+        if (n.textContent.indexOf("示意") >= 0) n.textContent = "※ 線上刷卡，付款完成即為您保留名額。";
+      });
+    }
+
+    // 從 Recur hosted 結帳跳轉回來：?recur_status=success/cancel
+    (function handleRecurReturn(){
+      var params = new URLSearchParams(location.search);
+      var rs = params.get("recur_status");
+      if (!rs) return;
+      if (rs === "cancel") {
+        try { localStorage.removeItem("recur_pending"); } catch(_){}
+        history.replaceState(null, "", location.pathname);
+        return;
+      }
+      if (rs !== "success") return;
+      var saved = null;
+      try { saved = JSON.parse(localStorage.getItem("recur_pending") || "null"); } catch(_){}
+      try { localStorage.removeItem("recur_pending"); } catch(_){}
+      history.replaceState(null, "", location.pathname + "?paid=1");
+
+      function donePending(title, msg){
+        document.getElementById("form-side").style.display = "none";
+        var d = document.getElementById("done"); d.classList.add("show");
+        var h3 = d.querySelector("h3"); if (h3) h3.textContent = title;
+        document.getElementById("done-msg").textContent = msg;
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+      function finishPaid(orderId){
+        try {
+          gtag('event','purchase',{ transaction_id: orderId || '', currency:'TWD', value: saved.amount || 0,
+            items:[{ item_id: saved.item_id, item_name: saved.item_name, price: saved.unit_price, quantity: saved.qty }] });
+          fbq('track','Purchase',{ content_ids:[saved.item_id], content_name: saved.item_name,
+            content_type:'product', value: saved.amount || 0, currency:'TWD', num_items: saved.qty });
+        } catch(_){}
+        saved.order_id = orderId || ""; saved.paid = true;
+        recordBooking(saved).then(function(){ showDone(saved); });
+      }
+
+      if (!saved || !saved.checkout_id) { showDone({ _generic: true }); return; }
+
+      // 回傳確認付款：用 Recur API 查該 checkout 狀態，SUCCEEDED 才算真的付款成功
+      var verifyURL = "https://api.recur.tw/v1/checkouts/" + encodeURIComponent(saved.checkout_id) +
+                      "/status?client_secret=" + encodeURIComponent(saved.client_secret || "");
+      var tries = 0;
+      (function verify(){
+        fetch(verifyURL, { headers: { "X-Recur-Publishable-Key": RECUR_PK } })
+          .then(function(r){ return r.json(); })
+          .then(function(st){
+            var ck = (st && st.checkout) || {}, status = ck.status;
+            if (status === "SUCCEEDED") { finishPaid(ck.orderId || ck.order_id || ""); return; }
+            if (tries++ < 3) { setTimeout(verify, 1500); return; }   // 容忍金流短暫延遲
+            donePending("付款處理中…",
+              "尚未確認到您的付款（狀態：" + (status || "未知") + "）。若您已完成付款，款項確認後會以 Email 通知；如有疑問請來信 " + OWNER_EMAIL + "。");
+          })
+          .catch(function(){
+            if (tries++ < 3) { setTimeout(verify, 1500); return; }
+            // 驗證連線失敗 → 不誆稱成功，記一筆待確認、請對方等通知
+            saved.status_check = "verify_failed";
+            recordBooking(saved);
+            donePending("已收到，付款確認中",
+              "已收到您的報名，付款確認後我們會以 Email 通知上課資訊；如有疑問請來信 " + OWNER_EMAIL + "。");
+          });
+      })();
+    })();
 
     applyCourseSlots();   // 初始：依班別決定可選時段
     applySlotFull();   // 初始即套用（時段灰化等狀態）
