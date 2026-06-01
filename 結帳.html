@@ -216,8 +216,14 @@ fbq('track','PageView');
       <div style="margin-top:40px"><span class="eyebrow">上課時間</span></div>
       <div class="field">
         <label for="date">上課日期</label>
-        <input id="date" type="date" min="2026-06-01" max="2026-06-30">
-        <p class="note">報名期間 6/1–6/30：6/1–6/11 僅開下午班，6/12 起加開晚上班。實際開課以達標並另行 email 確認為準。</p>
+        <select id="date">
+          <option value="" selected disabled>請選擇上課日期</option>
+          <option value="2026-06-13">6/13（六）</option>
+          <option value="2026-06-14">6/14（日）</option>
+          <option value="2026-06-20">6/20（六）</option>
+          <option value="2026-06-21">6/21（日）</option>
+        </select>
+        <p class="note">小朋友班為下午場、成人班為晚上場（酒鬼班加開深夜）。實際開課以達標並另行 email 確認為準。</p>
       </div>
       <div class="field">
         <label>時段</label>
@@ -363,55 +369,47 @@ fbq('track','PageView');
     var qty = 1;
     var slot = "";
 
-    // 日期限制：今天之後，預設帶到一週後
-    (function(){
-      var t = new Date(); t.setDate(t.getDate()+1);
-      dateEl.min = t.toISOString().slice(0,10);
-    })();
-
     function whenText(){
       if(!dateEl.value && !slot) return "未選擇上課時間";
       var d = dateEl.value ? dateEl.value.replace(/-/g,"/") : "（未選日期）";
       return d + "・" + (slot || "（未選時段）");
     }
 
-    // —— 開放報名規則（依「上課日期」判定，YYYY-MM-DD 字串可直接比較）——
-    //   6/1–6/11：只開「下午」班
-    //   6/12–6/30：開「下午」「晚上」班
-    //   其他日期：全部關閉
-    //   「早上」班全程不開放
-    var REG_START         = "2026-06-01";   // 報名期間起（含）
-    var REG_END           = "2026-06-30";   // 報名期間迄（含）
-    var EVENING_OPEN_FROM = "2026-06-12";   // 晚上班自此日（含）起開放
+    // —— 各班開放時段（依小朋友/成人區分；課程只開 6/13、14、20、21 四天）——
+    //   親子班 / 健康乖寶寶班（小朋友）→ 下午
+    //   成人班（成人）→ 晚上
+    //   酒鬼班（成人）→ 晚上、深夜
+    //   早上全程不開放
+    var OPEN_DATES   = ["2026-06-13", "2026-06-14", "2026-06-20", "2026-06-21"];
+    var COURSE_SLOTS = {
+      family: ["下午"],          // 親子班（小朋友）
+      good:   ["下午"],          // 健康乖寶寶班（小朋友）
+      adult:  ["晚上"],          // 成人班
+      drunk:  ["晚上", "深夜"]    // 酒鬼班
+    };
 
-    // 酒鬼班專屬：取消早上班、加開深夜班；其他班維持早上／下午／晚上
+    // 依班別只顯示該班的時段（其餘隱藏）
     function applyCourseSlots(){
-      var isDrunk = courseSel.value === "drunk";
+      var allow = COURSE_SLOTS[courseSel.value] || [];
       [].forEach.call(slotWrap.children, function(b){
         var name = b.getAttribute("data-slot");
-        // 酒鬼班：隱藏早上、顯示深夜；其他班：顯示早上、隱藏深夜
-        var visible = isDrunk ? (name !== "早上") : (name !== "深夜");
+        var visible = allow.indexOf(name) >= 0;
         b.style.display = visible ? "" : "none";
         if(!visible && b.classList.contains("on")){ b.classList.remove("on"); slot = ""; }
       });
     }
 
-    // 回傳該「時段」在該日期是否「未開放」（需灰化、不可選）
+    // 時段是否「未開放」（需灰化）：未選日期、非開放日、或非該班時段
     function slotClosed(dateStr, slotName){
-      if(!dateStr) return true;                                  // 未選日期 → 先灰化
-      if(dateStr < REG_START || dateStr > REG_END) return true;  // 非報名期間
-      if(slotName === "早上") return true;                       // 早上班不開放
-      // 晚上／深夜班自 6/12（含）起開放
-      if(slotName === "晚上" || slotName === "深夜") return dateStr < EVENING_OPEN_FROM;
-      return false;                                              // 下午班：6/1–6/30 皆開
+      if(!dateStr) return true;
+      if(OPEN_DATES.indexOf(dateStr) < 0) return true;
+      var allow = COURSE_SLOTS[courseSel.value] || [];
+      return allow.indexOf(slotName) < 0;
     }
 
-    // 灰化標籤文字：依原因給不同說明
+    // 灰化標籤文字
     function closedTag(dateStr, slotName){
-      if(slotName === "早上") return "暫不開放";
-      if(dateStr && (dateStr < REG_START || dateStr > REG_END)) return "未開放報名";
-      if(slotName === "晚上" || slotName === "深夜") return "6/12 起開放";
-      return "未開放";
+      return dateStr ? "未開放" : "請先選日期";
     }
 
     // 模擬名額：依日期＋時段偵測是否滿班（無後端，以確定性雜湊判定）
