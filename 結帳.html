@@ -763,10 +763,9 @@ fbq('track','PageView');
             class_name: booking.class_name, product_id: pid, name: nameV, phone: phoneV, email: emailV, amount: amount }) })
           .catch(function(){})
           .finally(function(){
-            // 官方 SDK hosted 結帳：由 SDK 自行建立 hosted session 並導去 checkout.recur.tw，付完才回 successUrl
+            // 官方 SDK hosted 結帳：redirectToCheckout 自行建立 hosted session 並導去 checkout.recur.tw，付完才回 successUrl
             getRecur().then(function(recur){
-              return recur.subscribe({
-                mode: "hosted",
+              return recur.redirectToCheckout({
                 productId: pid,
                 customerEmail: emailV,
                 customerName: nameV,
