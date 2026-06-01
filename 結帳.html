@@ -231,8 +231,10 @@ fbq('track','PageView');
         <label for="date">上課日期</label>
         <select id="date">
           <option value="" selected disabled>請選擇上課日期</option>
+          <option value="2026-06-12">6/12（五）</option>
           <option value="2026-06-13">6/13（六）</option>
           <option value="2026-06-14">6/14（日）</option>
+          <option value="2026-06-19">6/19（五）</option>
           <option value="2026-06-20">6/20（六）</option>
           <option value="2026-06-21">6/21（日）</option>
         </select>
@@ -241,10 +243,10 @@ fbq('track','PageView');
       <div class="field">
         <label>時段</label>
         <div class="seg" id="slot">
-          <button type="button" data-slot="早">早班<span class="sub">09:00–12:00</span><span class="seat"></span><span class="full-tag">已額滿</span></button>
-          <button type="button" data-slot="中">中班<span class="sub">13:30–16:30</span><span class="seat"></span><span class="full-tag">已額滿</span></button>
-          <button type="button" data-slot="晚">晚班<span class="sub">18:30–21:30</span><span class="seat"></span><span class="full-tag">已額滿</span></button>
-          <button type="button" data-slot="夜">夜班<span class="sub">20:00–23:00</span><span class="seat"></span><span class="full-tag">已額滿</span></button>
+          <button type="button" data-slot="早上">早上<span class="sub">09:00–12:00</span><span class="seat"></span><span class="full-tag">已額滿</span></button>
+          <button type="button" data-slot="下午">下午<span class="sub">13:30–16:30</span><span class="seat"></span><span class="full-tag">已額滿</span></button>
+          <button type="button" data-slot="晚上">晚上<span class="sub">18:30–21:30</span><span class="seat"></span><span class="full-tag">已額滿</span></button>
+          <button type="button" data-slot="深夜">深夜<span class="sub">20:00–23:00</span><span class="seat"></span><span class="full-tag">已額滿</span></button>
         </div>
 
       <div style="margin-top:40px"><span class="eyebrow">報名資料</span></div>
@@ -403,7 +405,7 @@ fbq('track','PageView');
     //   成人班（成人）→ 晚上
     //   酒鬼班（成人）→ 晚上、深夜
     //   早上全程不開放
-    var OPEN_DATES   = ["2026-06-13", "2026-06-14", "2026-06-20", "2026-06-21"];
+    var OPEN_DATES   = ["2026-06-12", "2026-06-13", "2026-06-14", "2026-06-19", "2026-06-20", "2026-06-21"];
     var COURSE_SLOTS = {
       family: ["下午"],          // 親子班（小朋友）
       good:   ["下午"],          // 健康乖寶寶班（小朋友）
