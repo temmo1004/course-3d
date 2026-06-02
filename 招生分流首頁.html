@@ -4,23 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>塗鴉變 3D 模型  — 招生分流首頁</title>
-
-<!-- GA4 -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-6P4C0V0QH0"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){ dataLayer.push(arguments); }
-  gtag('js', new Date());
-  gtag('config', 'G-6P4C0V0QH0');
-</script>
-
-<!-- Meta Pixel -->
-<script>
-!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
-fbq('init','1501976728044362');
-fbq('track','PageView');
-</script>
-
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
@@ -419,6 +402,17 @@ fbq('track','PageView');
     background:var(--yellow); flex:none;
   }
   /* —— 會學到什麼：卡片 —— */
+  /* —— 會學到什麼：定調句（理念）＋卡片（具體能力）—— */
+  .learn-lead {
+    position:relative; margin:-4px 0 20px; padding:2px 0 2px 18px;
+    border-left:5px solid var(--yellow); border-radius:2px;
+    font-size:clamp(16px,1.55vw,20px); line-height:1.85; color:#3a342a;
+    max-width:780px; text-wrap:pretty;
+  }
+  .learn-lead strong {
+    font-weight:900; color:var(--ink);
+    background:linear-gradient(transparent 58%, var(--yellow) 58%);
+  }
   .learn-list {
     list-style:none; display:grid; gap:14px;
     grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
@@ -773,6 +767,7 @@ fbq('track','PageView');
   html.mobv .backbtn.show:active { opacity:1; background:#000; }
 
   /* —— lists —— */
+  html.mobv .learn-lead { font-size:15.5px; line-height:1.8; margin:0 0 14px; padding-left:14px; border-left-width:4px; }
   html.mobv .learn-list { grid-template-columns:1fr; gap:12px; }
   html.mobv .learn-list li strong { font-size:16px; }
   html.mobv .prepare-list { gap:9px; }
