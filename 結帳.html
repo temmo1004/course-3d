@@ -248,7 +248,6 @@ fbq('track','PageView');
           <button type="button" data-date="2026-06-14">6/14<span class="dw">週日</span><span class="full-tag">已滿</span></button>
           <button type="button" data-date="2026-06-19">6/19<span class="dw">週五</span><span class="full-tag">已滿</span></button>
           <button type="button" data-date="2026-06-20">6/20<span class="dw">週六</span><span class="full-tag">已滿</span></button>
-          <button type="button" data-date="2026-06-21">6/21<span class="dw">週日</span><span class="full-tag">已滿</span></button>
         </div>
         <!-- 隱藏 select：日期的值來源 -->
         <select id="date" style="display:none">
@@ -257,9 +256,7 @@ fbq('track','PageView');
           <option value="2026-06-13">6/13（六）</option>
           <option value="2026-06-14">6/14（日）</option>
           <option value="2026-06-19">6/19（五）</option>
-          <option value="2026-06-20">6/20（六）</option>
-          <option value="2026-06-21">6/21（日）</option>
-        </select>
+          <option value="2026-06-20">6/20（六）</option>        </select>
         <p class="note">小朋友班為早上／下午場、成人班為晚上場（酒鬼班加開深夜）。實際開課以達標並另行 email 確認為準。</p>
       </div>
       <div class="field">
@@ -473,11 +470,11 @@ fbq('track','PageView');
       return d + "・" + (slot || "（未選時段）");
     }
 
-    // —— 各班開放時段（依小朋友/成人區分；課程只開 6/12、13、14、19、20、21 六天）——
+    // —— 各班開放時段（依小朋友/成人區分；課程只開 6/12、13、14、19、20 五天）——
     //   親子班 / 健康乖寶寶班（小朋友）→ 早上、下午
     //   成人班（成人）→ 晚上
     //   酒鬼班（成人）→ 晚上、深夜
-    var OPEN_DATES   = ["2026-06-12", "2026-06-13", "2026-06-14", "2026-06-19", "2026-06-20", "2026-06-21"];
+    var OPEN_DATES   = ["2026-06-12", "2026-06-13", "2026-06-14", "2026-06-19", "2026-06-20"];
     var COURSE_SLOTS = {
       family: ["早上", "下午"],    // 親子班（小朋友）
       good:   ["早上", "下午"],    // 健康乖寶寶班（小朋友）
