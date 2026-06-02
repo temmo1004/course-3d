@@ -109,6 +109,13 @@ const DETAIL_EXTRA = {
   family: {
     eyebrow: "親子班・課程介紹",
     course: "family",
+    outline: [
+      { time: "0:00–0:20", t: "報到・暖身", d: "認識今天的工具與流程，親子一起破冰，準備好一起當小孩。" },
+      { time: "0:20–1:00", t: "塗鴉發想", d: "和孩子在紙上自由揮灑想像，挑出最喜歡的塗鴉並掃描導入電腦。" },
+      { time: "1:00–2:00", t: "AI 建模", d: "用 Vizcom 把平面塗鴉變立體，一起迭代出孩子作品的 3D 造型。" },
+      { time: "2:00–2:40", t: "細節調整・匯出", d: "修整模型、加上底座，匯出可列印的 STL 檔。" },
+      { time: "2:40–3:00", t: "送印・收尾", d: "講解 FDM 列印與拆支撐，登記取件方式（自取或寄送超商）。" },
+    ],
     bigTitle: "與小孩一同創作並轉化為 3D 列印公仔",
     q: <>想要以更特別的方式紀念孩子的傑作嗎？<br/>想刺激孩子的想像力嗎？<br/>想與孩子創造特別的回憶嗎？</>,
     lead: <>看到網路上好多可愛的公仔，有沒有想過也能將您孩子的作品或想像力，轉變為值得收藏的公仔？來吧！讓您與您的孩子一起來當一段時間的小孩，一起留下特別的記憶吧！</>,
@@ -158,6 +165,13 @@ const DETAIL_EXTRA = {
   adult: {
     eyebrow: "成人班・課程介紹",
     course: "adult",
+    outline: [
+      { time: "0:00–0:15", t: "開場・工作流概覽", d: "介紹由設計師視角出發的 AI 創作工作流與工具安裝。" },
+      { time: "0:15–0:50", t: "草圖發想", d: "把腦中的想法或既有作品畫成草圖，導入電腦並用 AI 延伸探索。" },
+      { time: "0:50–2:00", t: "AI 建模", d: "用 Vizcom 將平面草圖轉為立體，迭代出您專屬的造型。" },
+      { time: "2:00–2:45", t: "模型細修・匯出", d: "調整比例與細節、加底座，匯出可列印的 STL 檔。" },
+      { time: "2:45–3:30", t: "送印・收尾", d: "講解 FDM 列印與拆支撐，登記取件方式。" },
+    ],
     bigTitle: "以塗鴉創作出只屬於您的 3D 列印公仔",
     q: <>腦中或筆記本有很多想法卻苦於軟體太難，無法變成 3D 嗎？<br/>有自己的角色或作品，卻一直停留在平面圖像嗎？<br/>買了 3D 列印機，卻還只下載別人的檔案？</>,
     lead: <>這堂課不要求您先成為建模高手，而是帶您用 AI 工作流，把塗鴉、草圖或既有作品轉化成 3D 模型，最後完成一件屬於您的列印公仔。</>,
@@ -208,6 +222,21 @@ const DETAIL_EXTRA = {
   good: {
     eyebrow: "健康乖寶寶班・課程介紹",
     course: "good",
+    outline: [
+      { time: "0:00–0:20", t: "報到・迷因檢討會開張", d: "介紹流程，暖身分享各自珍藏的梗圖。" },
+      { time: "0:20–1:00", t: "迷因蒐集・交流", d: "和同班同學交流梗圖，組成迷因大軍並挑出最對味的那張。" },
+      { time: "1:00–2:00", t: "AI 3D 小廢物煉成", d: "用 AI 把梗圖二創、調整細節，由平面轉為立體模型。" },
+      { time: "2:00–2:40", t: "模型調整・匯出", d: "修整細節、加底座，匯出可列印的 STL 檔。" },
+      { time: "2:40–3:00", t: "送印・收尾", d: "講解 FDM 列印與拆支撐，登記取件方式（隨班附贈牛奶一瓶 🥛）。" },
+    ],
+    info: [
+      { label: "上課時間", value: "3–3.5 小時" },
+      { label: "課程金額", value: <><del>原價 3,000 元</del><strong>限時開幕特惠價 1,500 元</strong>（含材料費）</> },
+      { label: "開班人數", value: "10 人開班（達標會以 email 通知）" },
+      { label: "課程日期", value: "請至結帳頁面查看與選擇" },
+      { label: "課程地址", value: "台北市中山區長安東路二段 31 號 4 樓之 5 — 404Table 教室" },
+      { label: "電腦硬體要求", value: "Windows 10+ 或 macOS 11+" },
+    ],
     bigTitle: "不喝酒也能創作出夠ㄎㄧㄤ的迷因公仔",
     q: <>桌上缺一隻獨特的小廢物嗎？<br/>找不到您想要的迷因周邊嗎？<br/>阿巴阿巴阿巴哇？</>,
     lead: <>每天都看到一堆網路迷因，卻很少看到有市售的迷因公仔。想讓您每天看的網路迷因走進現實嗎？來吧！我們一起製造一堆可愛小廢物！</>,
@@ -234,6 +263,13 @@ const DETAIL_EXTRA = {
   drunk: {
     eyebrow: "酒鬼班・課程介紹",
     course: "drunk",
+    outline: [
+      { time: "0:00–0:20", t: "報到・開瓶", d: "核對年齡、領取酒水，迷因檢討會正式開張。" },
+      { time: "0:20–1:10", t: "微醺迷因檢討會", d: "邊喝邊和同學交流珍藏梗圖，挑出最對味的那張。" },
+      { time: "1:10–2:20", t: "AI 3D 小廢物煉成", d: "把梗圖二創、讓角色也一起喝醉，由平面轉為立體模型。" },
+      { time: "2:20–3:00", t: "模型調整・匯出", d: "修整細節、加底座，匯出可列印的 STL 檔。" },
+      { time: "3:00–3:30", t: "送印・收尾", d: "講解 FDM 列印與拆支撐，登記取件方式。" },
+    ],
     bigTitle: "酒精 × 迷因 × AI × 3D 的究極課程",
     q: <>想邊喝邊上課？<br/>想找能喝酒又有趣的活動？<br/>愛喝酒又愛迷因還愛公仔？</>,
     lead: <>這堂課就是專門為各位酒鬼設計的，生活中身心俱疲了嗎？來一場下班後的桌面小廢物煉成之旅！！！</>,
@@ -361,6 +397,7 @@ function CourseIntro({ extra, courseName }) {
   const dPrepare = Array.isArray(dPrepareRaw) ? { required: dPrepareRaw } : dPrepareRaw;
   const dRecommend = dPrepare && dPrepare.recommended;
   const dTake    = extra && (extra.take    || COMMON_DETAIL.take);
+  const dOutline = extra && extra.outline;
   const dInfo    = extra && (extra.info    || COMMON_DETAIL.info);
   return (
     <section className="section-wrap series-intro">
@@ -452,6 +489,21 @@ function CourseIntro({ extra, courseName }) {
               <ul className="take-list">
                 {dTake.map((x, i) => <li key={i}>{x}</li>)}
               </ul>
+            </React.Fragment>
+          )}
+
+          {dOutline && (
+            <React.Fragment>
+              <h3 className="block-head">課程大綱</h3>
+              <ol className="outline-list">
+                {dOutline.map((r, i) => (
+                  <li key={i}>
+                    <span className="ol-time">{r.time}</span>
+                    <div className="ol-body"><strong>{r.t}</strong><span>{r.d}</span></div>
+                  </li>
+                ))}
+              </ol>
+              <p className="prepare-note">＊大綱為示意，實際進度依當天班級狀況彈性調整。</p>
             </React.Fragment>
           )}
 

@@ -454,6 +454,21 @@
   .info-row dd { flex:1; font-weight:700; color:#4a4438; font-size:15px; line-height:1.6; text-wrap:pretty; }
   .info-row dd del { color:var(--muted); font-weight:700; margin-right:10px; }
   .info-row dd strong { font-weight:900; color:var(--ink); background:linear-gradient(transparent 55%, var(--yellow) 55%); padding:0 2px; }
+  /* —— 課程大綱：時程表 —— */
+  .outline-list { list-style:none; display:grid; gap:10px; }
+  .outline-list li {
+    display:flex; gap:14px; align-items:flex-start;
+    padding:13px 18px; background:#fbf8f0;
+    border:1px solid rgba(120,105,75,.18); border-radius:12px;
+  }
+  .outline-list .ol-time {
+    flex:0 0 92px; font-weight:900; font-size:14px; color:#6a5a1a;
+    background:var(--yellow); border-radius:8px; padding:6px 8px;
+    text-align:center; line-height:1.3;
+  }
+  .outline-list .ol-body { flex:1; }
+  .outline-list .ol-body strong { display:block; font-weight:900; color:#2a261f; font-size:15.5px; margin-bottom:3px; }
+  .outline-list .ol-body span { display:block; font-weight:600; color:#4a4438; font-size:14px; line-height:1.6; text-wrap:pretty; }
   .prepare-note { margin-top:13px; font-size:13px; color:var(--muted); }
   .prepare-subhead {
     margin:22px 0 13px; font-size:clamp(15px,1.5vw,17px); font-weight:800; color:#6a5f49;
@@ -776,6 +791,10 @@
   html.mobv .info-row { flex-direction:column; gap:3px; padding:13px 16px; }
   html.mobv .info-row dt { flex-basis:auto; font-size:14px; }
   html.mobv .info-row dd { font-size:14.5px; }
+  html.mobv .outline-list li { padding:11px 14px; gap:10px; }
+  html.mobv .outline-list .ol-time { flex-basis:74px; font-size:13px; padding:5px 6px; }
+  html.mobv .outline-list .ol-body strong { font-size:15px; }
+  html.mobv .outline-list .ol-body span { font-size:13.5px; }
 
   /* —— signup / detail / footer —— */
   html.mobv .signup-band { margin-top:48px; }
@@ -1001,12 +1020,23 @@
   <div id="root"></div>
   <div class="loading" id="loading">載入素材中…</div>
 
+  <footer style="border-top:1px solid rgba(120,105,75,.28);padding:26px 20px 34px;text-align:center;font-size:13px;color:#8a7f6a;line-height:1.9;font-family:-apple-system,BlinkMacSystemFont,'PingFang TC','Noto Sans TC','Microsoft JhengHei',sans-serif;background:#ece5d8">
+    <div style="display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:center;margin-bottom:10px">
+      <a href="服務條款.html" style="color:#8a7f6a;font-weight:700;text-decoration:none">服務條款</a>
+      <a href="隱私政策.html" style="color:#8a7f6a;font-weight:700;text-decoration:none">隱私權政策</a>
+      <a href="退款政策.html" style="color:#8a7f6a;font-weight:700;text-decoration:none">退款政策</a>
+      <a href="付款說明.html" style="color:#8a7f6a;font-weight:700;text-decoration:none">付款說明</a>
+      <a href="聯絡我們.html" style="color:#8a7f6a;font-weight:700;text-decoration:none">聯絡我們</a>
+    </div>
+    <div>付款由 PAYUNi 統一金流安全處理 · © 2026 塗鴉變／迷因變 3D 模型課程</div>
+  </footer>
+
   <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
   <script type="text/babel" src="tweaks-panel.jsx"></script>
   <script type="text/babel" src="doodle-hero.jsx?v=2"></script>
   <script type="text/babel" src="meme-hero.jsx?v=4"></script>
-  <script type="text/babel" src="app.jsx?v=74"></script>
+  <script type="text/babel" src="app.jsx?v=75"></script>
 </body>
 </html>
