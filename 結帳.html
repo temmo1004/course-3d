@@ -180,6 +180,25 @@ fbq('track','PageView');
   .btn-pay:disabled { opacity:.45; cursor:not-allowed; transform:none; box-shadow:none; }
   .safe-note { margin-top:14px; font-size:12px; color:var(--muted); text-align:center; line-height:1.6; }
 
+  /* ===== 上課地點 ===== */
+  .venue { margin-top:22px; padding-top:18px; border-top:1px solid var(--line); }
+  .venue-head {
+    display:inline-block; font-size:12px; font-weight:900; letter-spacing:.1em;
+    color:var(--ink); background:var(--yellow); padding:4px 10px; border-radius:3px;
+  }
+  .venue-addr { margin-top:12px; font-size:15px; font-weight:800; line-height:1.6; color:var(--ink); }
+  .venue-addr span { display:block; margin-top:2px; font-size:13px; font-weight:700; color:var(--muted); }
+  .venue-map {
+    margin-top:12px; border-radius:12px; overflow:hidden;
+    border:1px solid var(--line); background:#fbf8f0;
+  }
+  .venue-link {
+    display:inline-flex; align-items:center; gap:5px; margin-top:12px;
+    font-size:14px; font-weight:800; color:var(--ink); text-decoration:none;
+    border-bottom:2px solid var(--yellow); padding-bottom:1px;
+  }
+  .venue-link:hover { color:#000; }
+
   /* success */
   .done {
     display:none; text-align:center; padding:18px 4px 4px;
@@ -318,6 +337,19 @@ fbq('track','PageView');
 
         <button class="btn-pay" id="pay">確認報名 →</button>
         <p class="safe-note">送出後將為您保留名額，並以 Email 寄送繳費與上課資訊。</p>
+
+        <div class="venue">
+          <div class="venue-head">上課地點</div>
+          <p class="venue-addr">台北市中山區長安東路二段 31 號 4 樓之 5<span>404Table 教室</span></p>
+          <div class="venue-map">
+            <iframe
+              src="https://maps.google.com/maps?q=%E5%8F%B0%E5%8C%97%E5%B8%82%E4%B8%AD%E5%B1%B1%E5%8D%80%E9%95%B7%E5%AE%89%E6%9D%B1%E8%B7%AF%E4%BA%8C%E6%AE%B5%2031%E8%99%9F&z=17&output=embed"
+              width="100%" height="180" style="border:0;display:block" loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade" title="404Table 教室地圖"></iframe>
+          </div>
+          <a class="venue-link" target="_blank" rel="noopener"
+             href="https://www.google.com/maps/search/?api=1&query=%E5%8F%B0%E5%8C%97%E5%B8%82%E4%B8%AD%E5%B1%B1%E5%8D%80%E9%95%B7%E5%AE%89%E6%9D%B1%E8%B7%AF%E4%BA%8C%E6%AE%B5%2031%E8%99%9F">在 Google 地圖開啟 ↗</a>
+        </div>
       </div>
 
       <div class="done" id="done">
