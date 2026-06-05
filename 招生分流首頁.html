@@ -1015,6 +1015,14 @@
     window.addEventListener("hashchange", update);
   })();
 </script>
+<!-- GA4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6P4C0V0QH0"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6P4C0V0QH0');
+</script>
 </head>
 <body>
   <div id="root"></div>
@@ -1055,5 +1063,25 @@
   <script type="text/babel" src="doodle-hero.jsx?v=2"></script>
   <script type="text/babel" src="meme-hero.jsx?v=4"></script>
   <script type="text/babel" src="app.jsx?v=75"></script>
+<script>
+(function(){
+  function ev(n,p){ try{ if(typeof gtag==='function') gtag('event',n,p||{}); }catch(_){ } }
+  ev('view_item',{items:[{item_category:'3d-model-series',item_name:'招生分流首頁'}]});
+  var marks=[25,50,75,100], fired={};
+  window.addEventListener('scroll', function(){
+    var h=document.documentElement, sc=(h.scrollTop||document.body.scrollTop||0);
+    var max=(h.scrollHeight - h.clientHeight)||1, pct=Math.round(sc/max*100);
+    marks.forEach(function(m){ if(pct>=m && !fired[m]){ fired[m]=1; ev('scroll_'+m,{}); } });
+  }, {passive:true});
+  var CLASSES=['親子班','成人班','健康乖寶寶班','酒鬼班'];
+  document.addEventListener('click', function(e){
+    var el=e.target.closest('a,button'); if(!el) return;
+    var txt=(el.innerText||el.textContent||'').replace(/\s+/g,'');
+    var href=el.getAttribute('href')||'';
+    if(/結帳|checkout/.test(href) || /直接下單|立即報名|去結帳|馬上報名/.test(txt)){ ev('begin_checkout',{cta:txt.slice(0,20)}); return; }
+    for(var i=0;i<CLASSES.length;i++){ if(txt.indexOf(CLASSES[i])>-1){ ev('select_class',{class_name:CLASSES[i]}); return; } }
+  }, true);
+})();
+</script>
 </body>
 </html>
