@@ -594,8 +594,8 @@ fbq('track','PageView');
             var left = Math.max(0, MAX_SEATS - myCount);
             var note = contested ? "（此時段競爭中）" : "";
             if(myCount < MIN_OPEN){
-              // 未達開班人數：提示還差幾人開課
-              seat.textContent = "已報 " + myCount + " 人・尚差 " + (MIN_OPEN - myCount) + " 人開班" + note;
+              // 名額開放中：不顯示「0 人／尚差 N 人」負面框架，避免嚇退（達標與退款由後端處理）
+              seat.textContent = (myCount > 0 ? "已報 " + myCount + " 人・募集中" : "名額開放中") + note;
               seat.classList.remove("few");
             } else {
               // 已可開班：顯示從滿班人數扣掉的剩餘名額
@@ -656,6 +656,17 @@ fbq('track','PageView');
       buildCurrentSlotData();
       updateDateOptions();
       applySlotFull();   // 顯示各時段已報人數／是否滿班；達標與退款由後端每日判定
+      autoSelectSingleSlot();   // 降摩擦：只有一個可選時段時自動選取
+    }
+    // 只有一個可選時段時自動選取，省一步點擊並避免「請先選時段」卡關
+    function autoSelectSingleSlot(){
+      var ok = [].filter.call(slotWrap.children, function(b){
+        return b.style.display !== "none" && !b.classList.contains("blocked") && !b.classList.contains("full");
+      });
+      if(ok.length === 1){
+        slot = ok[0].getAttribute("data-slot");
+        [].forEach.call(slotWrap.children, function(x){ x.classList.toggle("on", x===ok[0]); });
+      }
     }
 
     // 向後端取得各場次目前人數，更新名額顯示與已滿日期
@@ -719,6 +730,7 @@ fbq('track','PageView');
       applyCourseSlots();   // 換班別：更新可選時段（酒鬼班為夜班，其他班為早／中／晚）
       updateDateOptions();  // 換班別：依新班別重算哪些日期已滿
       applySlotFull();   // 換班別：依新班別重新判斷各時段是否被鎖定／剩餘名額
+      autoSelectSingleSlot();
       render();
     });
     // 報名人數鎖定 1（Recur 不支援 quantity；名額按報名筆數計）。stepper 已隱藏，listener 保留為 no-op 防呆。
@@ -811,6 +823,7 @@ fbq('track','PageView');
                 customerEmail: emailV,
                 customerName: nameV,
                 externalId: booking.booking_id,
+                metadata: (function(){var o={};try{var m=document.cookie.match(/_ga=GA\d\.\d\.(\d+\.\d+)/);if(m)o.ga_client_id=m[1];var fp=document.cookie.match(/_fbp=([^;]+)/);if(fp)o.fbp=decodeURIComponent(fp[1]);var fc=document.cookie.match(/_fbc=([^;]+)/);if(fc)o.fbc=decodeURIComponent(fc[1]);}catch(_){}return o;})(),
                 successUrl: _base + "?recur_status=success&bid=" + encodeURIComponent(booking.booking_id) + "&session_id={CHECKOUT_SESSION_ID}",
                 cancelUrl:  _base + "?recur_status=cancel"
               });
@@ -892,8 +905,7 @@ fbq('track','PageView');
       var sid = params.get("session_id") || "";
       if (saved) {
         try {
-          gtag('event','purchase',{ transaction_id: sid, currency:'TWD', value: saved.amount || 0,
-            items:[{ item_id: saved.item_id, item_name: saved.item_name, price: saved.unit_price, quantity: saved.qty }] });
+          // GA4 purchase 改由後端 webhook(checkout.completed → Measurement Protocol)送出，前端不再 fire，避免重整/跳轉重複計數。
           fbq('track','Purchase',{ content_ids:[saved.item_id], content_name: saved.item_name,
             content_type:'product', value: saved.amount || 0, currency:'TWD', num_items: saved.qty },
             { eventID: sid });   // 與後端 CAPI(event_id=checkout id=sid) 去重，避免 Pixel+CAPI 重複計數
