@@ -212,6 +212,18 @@ fbq('track','PageView');
   .done h3 { font-size:20px; font-weight:900; }
   .done p { margin-top:8px; color:#4a4438; font-weight:700; font-size:14px; line-height:1.7; }
 
+  #mpaybar{ display:none; }
+  @media (max-width:760px){
+    #mpaybar{ display:flex; position:fixed; left:0; right:0; bottom:0; z-index:60;
+      align-items:center; gap:12px; padding:10px 14px;
+      padding-bottom:calc(10px + env(safe-area-inset-bottom));
+      background:#fff; border-top:1px solid var(--line); box-shadow:0 -6px 20px rgba(0,0,0,.14); }
+    #mpaybar .mpb-info{ display:flex; flex-direction:column; line-height:1.15; flex:0 0 auto; }
+    #mpaybar .mpb-klass{ font-size:12px; color:var(--muted); }
+    #mpaybar .mpb-total{ font-size:18px; font-weight:800; color:var(--ink); white-space:nowrap; }
+    #mpaybar .btn-pay{ flex:1; margin:0; min-height:48px; }
+    body{ padding-bottom:74px; }
+  }
   @media (max-width:760px) {
     .wrap { grid-template-columns:1fr; }
     .summary { position:static; }
@@ -360,6 +372,14 @@ fbq('track','PageView');
       </div>
     </aside>
   </main>
+
+  <div id="mpaybar" role="region" aria-label="付款列">
+    <div class="mpb-info">
+      <span class="mpb-klass" id="mpb-klass">親子班</span>
+      <span class="mpb-total" id="mpb-total">NT$ 1,500</span>
+    </div>
+    <button type="button" class="btn-pay" id="mpb-pay">前往付款 →</button>
+  </div>
 
   <footer style="border-top:1px solid var(--line);margin-top:24px;padding:24px 20px 32px;text-align:center;font-size:13px;color:var(--muted);line-height:1.9">
     <div style="display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:center;margin-bottom:10px">
@@ -922,5 +942,20 @@ fbq('track','PageView');
     render();
     fetchSeats();   // 向後端取得目前各場次人數，更新名額顯示與已滿日期
   </script>
+<script>
+(function(){
+  var bar=document.getElementById('mpaybar'); if(!bar) return;
+  var total=document.getElementById('total'), klass=document.getElementById('sum-klass');
+  var mt=document.getElementById('mpb-total'), mk=document.getElementById('mpb-klass');
+  function sync(){ if(total&&mt) mt.textContent=total.textContent.trim(); if(klass&&mk) mk.textContent=klass.textContent.trim(); }
+  sync();
+  try{ var mo=new MutationObserver(sync);
+    if(total) mo.observe(total,{childList:true,characterData:true,subtree:true});
+    if(klass) mo.observe(klass,{childList:true,characterData:true,subtree:true});
+  }catch(_){}
+  var mp=document.getElementById('mpb-pay');
+  if(mp) mp.addEventListener('click', function(){ var pay=document.getElementById('pay'); if(pay) pay.click(); });
+})();
+</script>
 </body>
 </html>
