@@ -1023,6 +1023,12 @@
   gtag('js', new Date());
   gtag('config', 'G-6P4C0V0QH0');
 </script>
+<!-- Meta Pixel -->
+<script>
+  !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init','1501976728044362');
+  fbq('track','PageView');
+</script>
 </head>
 <body>
   <div id="root"></div>
@@ -1067,6 +1073,7 @@
 (function(){
   function ev(n,p){ try{ if(typeof gtag==='function') gtag('event',n,p||{}); }catch(_){ } }
   ev('view_item',{items:[{item_category:'3d-model-series',item_name:'招生分流首頁'}]});
+  try{ if(typeof fbq==='function') fbq('track','ViewContent',{content_category:'3d-model-series',content_name:'招生分流首頁'}); }catch(_){ }
   var marks=[25,50,75,100], fired={};
   window.addEventListener('scroll', function(){
     var h=document.documentElement, sc=(h.scrollTop||document.body.scrollTop||0);
@@ -1078,8 +1085,8 @@
     var el=e.target.closest('a,button'); if(!el) return;
     var txt=(el.innerText||el.textContent||'').replace(/\s+/g,'');
     var href=el.getAttribute('href')||'';
-    if(/結帳|checkout/.test(href) || /直接下單|立即報名|去結帳|馬上報名/.test(txt)){ ev('begin_checkout',{cta:txt.slice(0,20)}); return; }
-    for(var i=0;i<CLASSES.length;i++){ if(txt.indexOf(CLASSES[i])>-1){ ev('select_class',{class_name:CLASSES[i]}); return; } }
+    if(/結帳|checkout/.test(href) || /直接下單|立即報名|去結帳|馬上報名/.test(txt)){ ev('begin_checkout',{cta:txt.slice(0,20)}); try{if(typeof fbq==='function')fbq('track','InitiateCheckout');}catch(_){ } return; }
+    for(var i=0;i<CLASSES.length;i++){ if(txt.indexOf(CLASSES[i])>-1){ ev('select_class',{class_name:CLASSES[i]}); try{if(typeof fbq==='function')fbq('trackCustom','SelectClass',{class_name:CLASSES[i]});}catch(_){ } return; } }
   }, true);
 })();
 </script>
