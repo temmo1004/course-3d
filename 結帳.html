@@ -306,7 +306,7 @@ fbq('track','PageView');
           <input id="name" type="text" placeholder="王小明" autocomplete="name">
         </div>
         <div>
-          <label for="phone">手機</label>
+          <label for="phone">手機（選填）</label>
           <input id="phone" type="tel" placeholder="0912-345-678" autocomplete="tel">
         </div>
       </div>
@@ -789,10 +789,9 @@ fbq('track','PageView');
         if(!dateEl.value){ dateEl.focus(); }
         return;
       }
-      if(!nameV || !phoneV || !emailV){
-        alert("請填寫姓名、手機與 Email，方便我們與您聯繫。");
+      if(!nameV || !emailV){
+        alert("請填寫姓名與 Email，方便我們寄送上課資訊。");
         (!nameV ? document.getElementById("name")
-                : !phoneV ? document.getElementById("phone")
                 : document.getElementById("email")).focus();
         return;
       }
@@ -955,6 +954,16 @@ fbq('track','PageView');
   }catch(_){}
   var mp=document.getElementById('mpb-pay');
   if(mp) mp.addEventListener('click', function(){ var pay=document.getElementById('pay'); if(pay) pay.click(); });
+})();
+</script>
+<script>
+(function(){
+  var fired=false;
+  function start(){ if(fired) return; fired=true;
+    try{ if(typeof gtag==='function') gtag('event','form_start',{form:'checkout'}); }catch(_){ }
+    try{ if(typeof fbq==='function') fbq('trackCustom','CheckoutFormStart'); }catch(_){ }
+  }
+  ['name','phone','email'].forEach(function(id){ var el=document.getElementById(id); if(el) el.addEventListener('focus', start); });
 })();
 </script>
 </body>
