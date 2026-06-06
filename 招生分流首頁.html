@@ -1075,11 +1075,15 @@
   ev('view_item',{items:[{item_category:'3d-model-series',item_name:'招生分流首頁'}]});
   try{ if(typeof fbq==='function') fbq('track','ViewContent',{content_category:'3d-model-series',content_name:'招生分流首頁'}); }catch(_){ }
   var marks=[25,50,75,100], fired={};
-  window.addEventListener('scroll', function(){
-    var h=document.documentElement, sc=(h.scrollTop||document.body.scrollTop||0);
-    var max=(h.scrollHeight - h.clientHeight)||1, pct=Math.round(sc/max*100);
+  function onScroll(e){
+    var el = (e && e.target && e.target.nodeType===1 && e.target!==document.documentElement && e.target!==document.body)
+               ? e.target
+               : (document.scrollingElement || document.documentElement);
+    var sc=el.scrollTop||0, max=(el.scrollHeight - el.clientHeight)||1, pct=Math.round(sc/max*100);
     marks.forEach(function(m){ if(pct>=m && !fired[m]){ fired[m]=1; ev('scroll_'+m,{}); } });
-  }, {passive:true});
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  document.addEventListener('scroll', onScroll, {passive:true, capture:true});
   var CLASSES=['親子班','成人班','健康乖寶寶班','酒鬼班'];
   document.addEventListener('click', function(e){
     var el=e.target.closest('a,button'); if(!el) return;
